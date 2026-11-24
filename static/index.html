@@ -90,6 +90,8 @@ h2{font-size:1.6rem;font-weight:800;letter-spacing:-.025em;margin:8px 0 16px}
       <option>25</option><option>30</option><option selected>35</option><option>40</option><option>50</option></select></div>
     <button class="go" id="run" title="Run agent"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
   </div>
+  <a href="/campaigns.html" class="acct" style="text-decoration:none;color:inherit">Campaigns</a>
+  <a href="/shop.html" target="_blank" class="acct" style="text-decoration:none;color:inherit">Customer site ↗</a>
   <div class="acct"><span class="av">ABC</span>ABC Men's Grooming</div>
 </div></header>
 
@@ -103,6 +105,8 @@ h2{font-size:1.6rem;font-weight:800;letter-spacing:-.025em;margin:8px 0 16px}
   <section id="campaign" style="display:none"><div id="cOut"><div class="empty"><div class="e">🎁</div><h3>No campaign yet</h3><p>Run the pricing agent first to build targeted voucher offers.</p></div></div></section>
 </main>
 
+<script src="demo-data.js?v=13"></script>
+<script src="store.js?v=13"></script>
 <script>
 const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const town=()=>$("area").value.split(",")[0].trim();
@@ -118,7 +122,31 @@ $("run").onclick=async()=>{
   catch(e){$("pOut").innerHTML=`<div class="warn">Error: ${esc(e)}</div>`}
   $("run").disabled=false;$("load").style.display="none";
 };
+/* Approve & send: deliver this segment's voucher to the demo shop's opted-in clients (same rules as the backend). */
+let LAST=null;
+function segOf(c){const days=(Date.now()-Date.parse(c.last_visit))/864e5;return days>60?"lapsed":(c.lifetime_spend>=700?"vip":"regular")}
+function sendSeg(btn,k){
+  const v=LAST.campaign.segments[k],me=DEMO.competitors.me,st=PRStore.get(),offerId="seg"+Date.now()+k;
+  const ends=isNaN(Date.parse(v.expires))?new Date(Date.now()+14*864e5):new Date(Date.parse(v.expires)+86399e3);
+  let sent=0,skipped=0;
+  for(const c of DEMO.clients.filter(c=>c.consent_marketing===true&&segOf(c)===k)){
+    if(st.emails.some(m=>m.kind==="segment"&&m.to_email===c.email&&!m.revoked_at&&Date.parse(m.ends)>Date.now())){skipped++;continue}
+    const code="ABC-"+Math.random().toString(36).slice(2,7).toUpperCase();
+    const raw=String((LAST.drafts||{})[k]||"").replaceAll("{first_name}",c.first_name).replaceAll("{VOUCHER_CODE}",code);
+    const subject=(raw.match(/^\s*subject\s*:\s*(.+)$/im)||[])[1]||`${me.name}: pay £${v.pay}, get £${v.get}`;
+    const body=raw.replace(/^\s*subject\s*:.*$/im,"").trim()||`Hi ${c.first_name}, pay £${v.pay} today and get £${v.get} to spend on any service. Use code ${code} by ${v.expires}.`;
+    PRStore.addEmail({to_email:c.email,offer_id:offerId,kind:"segment",segment:k,first_name:c.first_name,service_key:null,pay:v.pay,value:v.get,ends:ends.toISOString(),
+      spa:me.name,brand:me.brand,subject,headline:`Pay £${v.pay}, get £${v.get} to spend at ${me.name}`,body,cta:"Buy gift card",code,
+      footer:`${me.brand.sign_off}. You're receiving this because you agreed to hear from us. Unsubscribe any time.`});
+    sent++;
+  }
+  btn.disabled=true;btn.textContent=`✓ Sent to ${sent} client${sent===1?"":"s"}${skipped?` · ${skipped} already had one`:""}`;
+  const who=DEMO.clients.filter(c=>c.consent_marketing===true&&segOf(c)===k);
+  btn.insertAdjacentHTML("afterend",`<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px">${who.map(c=>`<button class="chip" style="padding:7px 14px;font-size:.85rem" onclick="PRStore.setSession('${c.id}','inbox');this.textContent='✓ ${esc(c.first_name)} open in shop'">View ${esc(c.first_name)}'s inbox</button>`).join("")}</div>
+    <a href="/campaigns.html" style="display:block;text-align:center;margin-top:10px;color:var(--purple);font-weight:600;text-decoration:none">Track delivery and revoke →</a>`);
+}
 function render(d){
+  LAST=d;
   const recs=d.pricing.recommendations,rc=d.research,raises=recs.filter(r=>r.action.includes("RAISE")).length;
   const gap=(recs.reduce((a,r)=>a+r["gap %"],0)/recs.length).toFixed(1);
   $("lede").innerHTML=`Compared with ${rc.competitors_sampled} barbers within ${rc.radius_miles} miles of ${esc(rc.area)}${(rc.sources||[]).some(s=>s.url)?` · <a onclick="document.getElementById('srcs').scrollIntoView({behavior:'smooth'})">See sources</a>`:""}`;
@@ -153,7 +181,8 @@ function render(d){
       <div class="offer"><span>Pay £${v.pay}</span><span>Get £${v.get}</span></div>
       <div class="s" style="color:var(--mut);margin-top:10px;font-size:.88rem">${esc(v.pitch)} · ≈ £${v["projected_£_upfront"].toLocaleString()} upfront</div>
       ${d.drafts[k]?`<div class="email">${esc(d.drafts[k])}</div>`:""}
-      <button class="send" onclick="this.textContent='✓ Queued ${v.count} emails (demo)';this.disabled=true">Approve & send to ${v.count}</button></div></div>`}).join("")}</div>`;
+      <button class="send" onclick="sendSeg(this,'${k}')">Approve & send</button>
+      <div class="s" style="color:var(--mut);font-size:.8rem;margin-top:8px;text-align:center">${v.count} in the agent's synthetic list · sends to opted-in ${esc(k)} clients in the demo shop: ${DEMO.clients.filter(c=>c.consent_marketing===true&&segOf(c)===k).map(c=>esc(c.first_name)).join(", ")||"none"}</div></div></div>`}).join("")}</div>`;
 }
 </script>
 </body>

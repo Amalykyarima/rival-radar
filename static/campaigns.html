@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campaigns & approvals · Rival Radar</title>
+<style>
+  :root { --ink:#17171c; --muted:#6b6b76; --line:#e4e4ea; --bg:#f7f7fa; --card:#fff;
+          --accent:#5b3df5; --accent-soft:#ece8ff; --good:#0f8a5f; --good-soft:#e3f5ec; --bad:#c0392b; --bad-soft:#fbeaea; --warn:#9a5b00; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif; color:var(--ink); background:var(--bg); }
+  header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 28px; background:var(--card); border-bottom:1px solid var(--line); }
+  header h1 { font-size:17px; margin:0; }
+  .sub { color:var(--muted); font-size:13px; }
+  .banner { margin:16px 28px 0; padding:10px 14px; border-radius:8px; background:#fff4e0; color:#7a4a00; font-size:13px; display:none; }
+  .wrap { padding:16px 28px 48px; max-width:1320px; }
+  .tabs { display:flex; gap:8px; margin:4px 0 16px; flex-wrap:wrap; }
+  .tab { border:1px solid var(--line); background:var(--card); border-radius:999px; padding:6px 14px; cursor:pointer; font:inherit; }
+  .tab.active { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .grid { display:grid; grid-template-columns:1.25fr 1fr; gap:20px; align-items:start; } .grid + .grid { margin-top:20px; }
+  .col { display:grid; gap:20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+  .card h2 { font-size:15px; margin:0 0 4px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+  .grid > *, .col > * { min-width:0; } .card { overflow-x:auto; }
+  .hint { color:var(--muted); font-size:12.5px; margin:0 0 12px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11.5px; background:var(--bg); color:var(--muted); white-space:nowrap; }
+  .pill.good { background:var(--good-soft); color:var(--good); } .pill.bad { background:var(--bad-soft); color:var(--bad); }
+  .alert { border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:10px; padding:12px 14px; margin-bottom:10px; cursor:pointer; }
+  .alert.sel { background:var(--accent-soft); }
+  .alert .row { display:flex; justify-content:space-between; gap:8px; }
+  .big { font-size:20px; font-weight:700; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { text-align:left; padding:7px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:500; font-size:12px; }
+  td.num,th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  tr.me td { background:var(--accent-soft); font-weight:600; }
+  .seg { display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .seg button { border:0; background:var(--card); padding:8px 16px; font:inherit; cursor:pointer; }
+  .seg button.on { background:var(--ink); color:#fff; }
+  .btns { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+  button.primary { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:9px 18px; font:inherit; font-weight:600; cursor:pointer; }
+  button.ghost { background:none; border:1px solid var(--line); border-radius:8px; padding:9px 18px; font:inherit; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:default; }
+  .kv { display:grid; grid-template-columns:auto 1fr; gap:4px 14px; font-size:13px; margin-top:10px; }
+  .kv div:nth-child(odd) { color:var(--muted); }
+  .why { background:var(--bg); border-radius:8px; padding:10px 12px; margin-top:10px; font-size:13px; }
+  .status { margin-top:10px; font-size:13px; }
+  .email { border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  .email .bar { padding:14px 18px; color:#fff; font-weight:700; letter-spacing:.3px; }
+  .email .inner { padding:16px 18px; }
+  .email h3 { margin:0 0 8px; font-size:18px; }
+  .email .cta { display:inline-block; margin-top:12px; padding:10px 18px; border-radius:6px; color:#fff; font-weight:600; }
+  .email .foot { padding:10px 18px; font-size:11.5px; color:var(--muted); border-top:1px solid var(--line); }
+  .meta { font-size:12px; color:var(--muted); margin-bottom:8px; }
+  .check { display:flex; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:13px; }
+  .check:last-child { border-bottom:0; }
+  .mark { font-weight:700; width:18px; text-align:center; }
+  .mark.ok { color:var(--good); } .mark.no { color:var(--bad); }
+  .mono { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; }
+  .emailGrid { display:grid; grid-template-columns:minmax(0,460px) minmax(0,1fr); gap:24px; align-items:start; margin-top:8px; }
+  @media (max-width:900px) { .emailGrid { grid-template-columns:1fr; } }
+  .agentForm { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1.2fr) minmax(0,.6fr) minmax(0,.6fr) auto; gap:10px; align-items:end; margin-bottom:12px; }
+  .agentForm label { font-size:12px; color:var(--muted); display:grid; gap:4px; }
+  .agentForm input { font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:8px; color:var(--ink); }
+  @media (max-width:900px) { .agentForm { grid-template-columns:1fr 1fr; } }
+  .chip { display:inline-block; padding:3px 10px; border-radius:999px; background:var(--accent-soft); color:var(--accent); font-size:12px; margin:0 6px 6px 0; }
+  .agentGrid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px; margin-top:14px; }
+  @media (max-width:900px) { .agentGrid { grid-template-columns:1fr; } }
+  details.draft { border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin-bottom:8px; }
+  details.draft pre { white-space:pre-wrap; font:13px/1.5 inherit; margin:8px 0 0; }
+  .upl { border:1px solid var(--line); border-radius:8px; padding:6px 12px; font-size:13px; font-weight:400; cursor:pointer; }
+  .score { font-size:28px; font-weight:700; }
+  @media (max-width:820px) { .grid { grid-template-columns:1fr; } }
+  header { height:84px; border-bottom:1px solid var(--line) !important; }
+  .card { border-radius:22px !important; border:1px solid var(--line) !important; box-shadow:none !important; }
+  .card h2 { font-size:1.15rem !important; font-weight:800 !important; letter-spacing:-.02em; }
+  .stat, .why, .alert.sel, .email, details.draft { border-radius:16px !important; }
+  .stat, .why { background:var(--soft) !important; }
+  .stat .v { font-weight:800 !important; letter-spacing:-.03em; }
+  button.primary, .widget button { background:var(--ink) !important; border-radius:999px !important; padding:11px 22px !important; font-weight:700 !important; }
+  button.ghost, .upl { border-radius:999px !important; font-weight:600 !important; }
+  .tab { border-radius:999px !important; padding:9px 18px !important; font-weight:600 !important; }
+  .tab.active, .seg button.on { background:var(--ink) !important; border-color:var(--ink) !important; color:#fff !important; }
+  .seg { border-radius:999px !important; } .seg button { padding:9px 18px !important; font-weight:600; }
+  .alert { border-left-color:var(--purple) !important; border-radius:16px !important; }
+  .alert.sel { background:var(--accent-soft) !important; }
+  .pill { font-weight:600; } .chip { background:var(--soft) !important; color:var(--ink) !important; font-weight:600; }
+  tr.me td { background:var(--accent-soft) !important; }
+  .agentForm input { border-radius:999px !important; padding:10px 16px !important; }
+  .banner { border-radius:14px !important; background:#FEF3E2 !important; color:#B45309 !important; }
+</style>
+<link rel="stylesheet" href="rr-theme.css?v=13">
+</head>
+<body>
+<header>
+  <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap"><a class="rr-logo" href="/">rival radar<i>.</i></a>
+    <nav class="rr-nav"><a href="/">Price check</a><a class="on" href="/campaigns.html">Campaigns</a><a href="/shop.html" target="_blank">Customer site ↗</a><a href="/demo.html">Live demo</a></nav></div>
+  <div style="display:none"><h1>Campaigns & approvals</h1><div class="sub"><a href="/">← Rival Radar price check</a> · <a href="/shop.html" target="_blank">Customer site ↗</a> · <a href="/demo.html">Live demo (both sides)</a></div><div class="sub" id="areaLine">Competitor price radar for Fresha partners · hackathon prototype</div></div>
+  <div style="text-align:right"><div class="sub" id="warmLine"></div><div class="sub" id="syncLine" style="margin-top:2px"></div></div>
+</header>
+<div class="banner" id="sampleBanner">Demo data. Every person, business and price comes from demo-data.js and is invented. Put the real Tavily scan in competitors.json to replace the competitor prices.</div>
+
+<div class="wrap">
+  <div style="color:var(--muted);margin:22px 0 6px">Home · Marketing · <b style="color:var(--ink);font-weight:500">Campaigns &amp; approvals</b></div>
+  <h1 style="font-size:2.4rem;font-weight:800;letter-spacing:-.035em;margin:0 0 14px">Offers, approvals and proof</h1>
+  <div class="tabs" id="tabs"></div>
+  <section class="card" id="segCard" style="margin-bottom:20px">
+    <h2>Segment vouchers sent from Price check <span><span class="pill" id="segCount"></span> <button class="ghost" id="segRevokeAll" style="padding:4px 10px;font-size:12px">Revoke all unused</button></span></h2>
+    <p class="hint">Sent with "Approve &amp; send" on the <a href="/">Price check</a> page's Voucher campaign tab. Each row is read back from the customer inboxes.</p>
+    <table id="segTable"></table>
+  </section>
+  <div class="grid">
+    <div class="col">
+      <section class="card">
+        <h2>Live from the storefront <span><a href="shop.html" target="_blank" class="pill" style="text-decoration:none">open shop.html ↗</a> <button class="ghost" id="resetDemo" style="padding:4px 10px;font-size:12px">Reset demo</button></span></h2>
+        <p class="hint">Customers sign in to book, so every visitor who leaves without booking is a known, emailable lead (if they opted in).</p>
+        <div class="kv" id="results" style="margin:0 0 12px"></div>
+        <table id="feed"></table>
+      </section>
+      <section class="card">
+        <h2>Price gap alerts <span class="pill" id="gapCount"></span></h2>
+        <p class="hint">Competitors whose current price or advertised offer for this treatment is below yours.</p>
+        <div id="alerts"></div>
+      </section>
+    </div>
+    <div class="col">
+      <section class="card" id="offerCard">
+        <h2>Proposed offer <span class="pill" id="offerSource"></span></h2>
+        <div id="offerBody"></div>
+      </section>
+      
+    </div>
+  </div>
+  <section class="card" id="emailCard" style="display:none;margin:20px 0">
+        <h2>Emails sent <span class="seg" id="audSeg"></span></h2>
+        <div class="emailGrid"><div id="emailBody"></div><div>
+        <h2 style="margin-top:0">Who received it <span><span class="pill" id="recCount"></span> <button class="ghost" id="revokeAll" style="padding:4px 10px;font-size:12px">Revoke all unused</button></span></h2>
+        <p class="hint">Each row is checked against the email log and the storefront inbox. "View in shop" signs the storefront in as that customer and opens their inbox.</p>
+        <table id="recTable"></table>
+        </div></div>
+      </section>
+  <div class="grid">
+    <div class="col">
+      <section class="card">
+        <h2>Local prices</h2>
+        <p class="hint" id="tableHint"></p>
+        <table id="compTable"></table>
+      </section>
+      <section class="card">
+        <h2>Your price history <label class="upl">Upload CSV<input type="file" id="histFile" accept=".csv,text/csv" hidden></label></h2>
+        <p class="hint" id="histHint">CSV columns: date, service_key, price_gbp. Export from Fresha reports or your own records.</p>
+        <div id="histChart"></div>
+      </section>
+      <section class="card">
+        <h2>Action log <span class="pill">every tool call, with status code</span></h2>
+        <p class="hint">The agent's claims are checked against these records, not against what the agent says.</p>
+        <table id="logTable"></table>
+      </section>
+    </div>
+    <div class="col">
+      <section class="card" id="verifyCard" style="display:none">
+        <h2>Did it do what you asked? <span class="pill" id="verifyScore"></span></h2>
+        <p class="hint" id="verifyAsk"></p>
+        <div id="verifyBody"></div>
+      </section>
+      <section class="card">
+        <h2>Test scenarios <button class="ghost" id="runTests" style="padding:6px 12px">Run tests</button></h2>
+        <p class="hint">Each test could fail. It runs the same functions as the live flow, against mock Fresha and email tools.</p>
+        <div id="testBody"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="demo-data.js?v=13"></script>
+<script src="store.js?v=13"></script>
+<script>
+/* ================= Config =================
+   Agent lead: list two or more model endpoints per step. They race, and the first valid JSON wins.
+   Each endpoint gets POST {playbook, input} and returns JSON. Empty = built-in rule or template.   */
+const OFFER_ENDPOINTS = [];   // e.g. ["/api/offer?model=primary", "/api/offer?model=backup"]
+const EMAIL_ENDPOINTS = [];   // e.g. ["/api/email?model=primary", "/api/email?model=backup"]
+const JUDGE_ENDPOINT  = "";   // optional LLM judge; local checks always run
+const OFFER_WINDOW_HOURS = 72;
+const LEAD_WINDOW_DAYS = 14;
+
+/* Demo data lives in demo-data.js. Shared live state (storefront clicks, emails, purchases) lives in store.js. */
+
+/* ================= Helpers ================= */
+const $ = id => document.getElementById(id);
+const gbp = n => n == null ? "–" : "£" + (Number.isInteger(n) ? n : n.toFixed(2));
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const fmtDate = d => d.toLocaleString("en-GB", { weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" });
+const fmtDay = d => d.toLocaleDateString("en-GB", { weekday:"long", day:"numeric", month:"long" });
+const nowTime = () => new Date().toLocaleTimeString("en-GB", { hour:"2-digit", minute:"2-digit", second:"2-digit" });
+
+/* ================= Pure logic (used by the live flow AND the tests) ================= */
+const effPrice = s => (typeof s.offer_price_gbp === "number" ? s.offer_price_gbp : s.price_gbp);
+
+function detectGaps(comp, key) {
+  const mine = comp.me.services.find(s => s.key === key);
+  if (!mine) return [];
+  return comp.competitors
+    .map(c => ({ c, s: c.services.find(s => s.key === key) }))
+    .filter(x => x.s && typeof effPrice(x.s) === "number" && effPrice(x.s) < mine.price_gbp)
+    .map(x => ({ competitor: x.c, svc: x.s, eff: effPrice(x.s), gap: mine.price_gbp - effPrice(x.s) }))
+    .sort((a, b) => b.gap - a.gap || a.competitor.distance_km - b.competitor.distance_km);
+}
+
+/* Two offer sizes scaled to the price: about 10% and 20% (at least £1 apart). */
+const tiers = price => { const small = Math.max(1, Math.round(price * 0.10)); return { small, large: Math.max(small + 1, Math.round(price * 0.20)) }; };
+
+function ruleOffer(me, mine, g, hist) {
+  const T = tiers(mine.price_gbp);
+  const better = typeof me.rating === "number" && typeof g.competitor.rating === "number" && me.rating >= g.competitor.rating;
+  if (g.gap <= T.small) return { offer_gbp: T.small, tier: "small", confidence: "medium",
+    rationale: `${g.competitor.name} is ${gbp(g.gap)} cheaper. ${gbp(T.small)} off covers that gap.` };
+  if (hist && hist.cutRecently) return { offer_gbp: T.small, tier: "small", confidence: "medium",
+    rationale: `You already cut this price on ${hist.cutDate}. ${gbp(T.small)} avoids stacking a big discount on top.` };
+  if (better) return { offer_gbp: T.small, tier: "small", confidence: "medium",
+    rationale: `${g.competitor.name} is at ${gbp(g.eff)}, but you are rated ${me.rating} vs ${g.competitor.rating}, so ${gbp(T.small)} off is enough.` };
+  return { offer_gbp: T.large, tier: "large", confidence: "medium",
+    rationale: `${g.competitor.name} is at ${gbp(g.eff)} and rated ${g.competitor.rating} vs your ${me.rating}, so a stronger ${gbp(T.large)} offer.` };
+}
+
+/* Leads = signed-in users who showed interest in a treatment and haven't booked it since. */
+function deriveLeads(users, events) {
+  const groups = {};
+  for (const e of events) {
+    const u = users.find(x => x.id === e.user_id); if (!u || !e.service_key) continue;
+    const g = groups[u.id + ":" + e.service_key] ||= { u, key: e.service_key, booked: 0, interest: 0, evs: [] };
+    const t = Date.parse(e.at);
+    if (e.type === "booked") g.booked = Math.max(g.booked, t);
+    if (["view", "checkout_started", "checkout_abandoned"].includes(e.type)) g.interest = Math.max(g.interest, t);
+    g.evs.push({ ...e, t });
+  }
+  return Object.entries(groups).filter(([, g]) => g.interest > g.booked).map(([id, g]) => {
+    const after = g.evs.filter(e => e.t > g.booked);
+    const prices = after.filter(e => typeof e.price_in_mind_gbp === "number");
+    return { id, user_id: g.u.id, first_name: g.u.first_name, email: g.u.email, service_viewed: g.key,
+             abandoned_at: new Date(g.interest).toISOString(), consent_marketing: g.u.consent_marketing === true,
+             source: after.some(e => e.type === "checkout_abandoned") ? "checkout_abandoned" : "viewed",
+             price_in_mind_gbp: prices.length ? prices.sort((a, b) => b.t - a.t)[0].price_in_mind_gbp : null };
+  });
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/); if (lines.length < 2) return [];
+  const head = lines[0].split(",").map(h => h.trim().toLowerCase());
+  const di = head.indexOf("date"), ki = head.indexOf("service_key"), pi = head.indexOf("price_gbp");
+  if (di < 0 || ki < 0 || pi < 0) return [];
+  return lines.slice(1).map(l => l.split(",").map(c => c.trim()))
+    .map(c => ({ date: c[di], service_key: c[ki], price_gbp: Number(c[pi]) }))
+    .filter(r => !isNaN(Date.parse(r.date)) && r.service_key && Number.isFinite(r.price_gbp));
+}
+
+function historySummary(rows, key, now) {
+  const h = rows.filter(r => r.service_key === key).sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+  if (!h.length) return null;
+  const cur = h.at(-1);
+  let i = h.length - 1; while (i > 0 && h[i - 1].price_gbp === cur.price_gbp) i--;
+  const prev = i > 0 ? h[i - 1] : null;
+  const day = d => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  const cut = prev && cur.price_gbp < prev.price_gbp && (now - Date.parse(h[i].date)) / 864e5 <= 30;
+  return { rows: h, current: cur.price_gbp, since: day(h[i].date), sinceDays: Math.round((now - Date.parse(h[i].date)) / 864e5),
+           lastChange: prev ? cur.price_gbp - prev.price_gbp : 0, cutRecently: !!cut, cutDate: cut ? day(h[i].date) : null };
+}
+
+function audiences(leads, clients, key, now) {
+  const recentLead = l => l.service_viewed === key && (now - new Date(l.abandoned_at).getTime()) / 864e5 <= LEAD_WINDOW_DAYS;
+  const leadPool = leads.filter(recentLead), clientPool = clients.filter(c => c.last_service === key);
+  return {
+    A: leadPool.filter(l => l.consent_marketing === true),
+    B: clientPool.filter(c => c.consent_marketing === true),
+    excluded: [...leadPool, ...clientPool].filter(p => p.consent_marketing !== true)
+  };
+}
+
+const URGENCY = /\b\d+\s*hours?\b|hurry|last chance|ends tonight|hours left|don't miss|act now/i;
+
+function templateEmail(me, mine, offer, audience, ends) {
+  const pay = mine.price_gbp - offer, label = mine.label, cos = !!mine.cosmetic_intervention;
+  const when = cos ? `This offer is available until ${fmtDay(ends)}. There's no rush: we'll talk it through with you at a consultation first.`
+                   : `This offer ends in ${OFFER_WINDOW_HOURS} hours, on ${fmtDate(ends)}.`;
+  const lead = audience === "A";
+  return {
+    subject: lead ? `Your ${label.toLowerCase()}, now ${gbp(pay)}` : `Pre-book your next ${label.toLowerCase()} for ${gbp(pay)}`,
+    preheader: `Pay ${gbp(pay)} for a ${gbp(mine.price_gbp)} gift card.`,
+    headline: lead ? `Still thinking about your ${label.toLowerCase()}?` : `Time for your next ${label.toLowerCase()}`,
+    body: (lead ? `You were looking at our ${label.toLowerCase()}. We'd love to welcome you in. `
+                : `Thank you for visiting us. If you'd like to plan your next session, you can secure it now. `) +
+          `Pay ${gbp(pay)} today for a ${gbp(mine.price_gbp)} gift card and book whenever suits you. ${when}`,
+    cta: lead ? "Buy gift card" : "Pre-book now",
+    footer: `${me.brand?.sign_off || me.name}. You're receiving this because you agreed to hear from us. Unsubscribe any time.`
+  };
+}
+
+function localJudge(email, ctx) {
+  const text = [email.subject, email.preheader, email.headline, email.body, email.cta].join(" ");
+  const checks = [
+    { name: "Offer amount matches what was approved", ok: text.includes(gbp(ctx.pay)) && text.includes(gbp(ctx.value)) },
+    { name: "Right treatment named", ok: text.toLowerCase().includes(ctx.label.toLowerCase()) },
+    { name: "No competitor mentioned", ok: !ctx.competitorNames.some(n => text.toLowerCase().includes(n.toLowerCase())) },
+    { name: "No countdown language for a cosmetic treatment", ok: !ctx.cosmetic || !URGENCY.test(text) },
+    { name: "Unsubscribe line present", ok: /unsubscribe/i.test(email.footer || "") }
+  ];
+  return { pass: checks.every(c => c.ok), checks };
+}
+
+/* Mock tools: the Fresha and email calls we can't make for real. They return status codes like real APIs. */
+function makeTools(log, opts = {}) {
+  let n = 0;
+  const rec = (tool, args, status, extra = {}) => { const e = { id: "t" + (++n), at: nowTime(), tool, args, status, ...extra }; log.push(e); return e; };
+  return {
+    createGiftCardOffer: (args) => rec("fresha.create_gift_card_offer", args, opts.failGiftCard ? 500 : 201, { ref: "GC-" + Math.random().toString(36).slice(2, 7).toUpperCase() }),
+    sendEmail: (args, payload) => { const e = rec("email.send", args, opts.failEmail ? 503 : 202); if (opts.onSend && payload && e.status < 300) opts.onSend(args, payload); return e; },
+    note: (tool, args, status = 200) => rec(tool, args, status)
+  };
+}
+
+/* Execute an approval: the only path that sends anything. */
+function executeApproval(ctx, tools) {
+  const gc = tools.createGiftCardOffer({ service: ctx.key, pay_gbp: ctx.pay, value_gbp: ctx.value, ends: ctx.ends.toISOString() });
+  const sends = [];
+  for (const [aud, people] of [["A", ctx.aud.A], ["B", ctx.aud.B]]) {
+    for (const p of people) {
+      if (ctx.sentBefore && ctx.sentBefore(p)) { tools.note("email.skip_duplicate", { to: p.email, person: p.id, service: ctx.key, offer_id: ctx.offerId }, 200); continue; }
+      sends.push(tools.sendEmail({ to: p.email, person: p.id, service: ctx.key, offer_id: ctx.offerId, audience: aud, subject: ctx.emails[aud].subject }, { first_name: p.first_name, email: ctx.emails[aud], ctx }));
+    }
+  }
+  return { gc, sends };
+}
+
+/* Verify claims against the log. A claim is proven only by a matching success record. */
+function verify(ctx, log) {
+  const ok = s => s >= 200 && s < 300;
+  const gc = [...log].reverse().find(e => e.tool === "fresha.create_gift_card_offer" && e.args.service === ctx.key);
+  const sent = log.filter(e => e.tool === "email.send" && e.args.offer_id === ctx.offerId);
+  const checks = [];
+  checks.push({ claim: `Gift card offer created: pay ${gbp(ctx.pay)}, get ${gbp(ctx.value)}`, ok: !!gc && ok(gc.status) && gc.args.pay_gbp === ctx.pay,
+                evidence: gc ? `${gc.id} · ${gc.tool} · ${gc.status}` : "no record" });
+  for (const p of [...ctx.aud.A, ...ctx.aud.B]) {
+    const e = sent.find(x => x.args.person === p.id);
+    const dup = log.find(x => x.tool === "email.skip_duplicate" && x.args.person === p.id && x.args.offer_id === ctx.offerId);
+    if (!e && dup) { checks.push({ claim: `${p.first_name} not emailed twice (already has a live offer)`, ok: true, evidence: `${dup.id} · email.skip_duplicate` }); continue; }
+    checks.push({ claim: `Email sent to ${p.first_name}`, ok: !!e && ok(e.status), evidence: e ? `${e.id} · ${e.tool} · ${e.status}` : "no record" });
+    if (ctx.live) {
+      const inb = PRStore.get().emails.find(m => m.offer_id === ctx.offerId && m.to_email === p.email);
+      checks.push({ claim: `Arrived in ${p.first_name}'s storefront inbox`, ok: !!inb, evidence: inb ? `store.emails · ${inb.id}` : (PRStore.status().warn || "not found in shared store") });
+    }
+  }
+  for (const p of ctx.aud.excluded) {
+    const e = sent.find(x => x.args.person === p.id);
+    checks.push({ claim: `${p.first_name} not emailed (no consent)`, ok: !e, evidence: e ? `${e.id} sent despite no consent` : "no email.send record, as expected" });
+  }
+  if (ctx.live) {
+    const pr = PRStore.get().promos.find(p => p.id === ctx.offerId), lg = log.find(e => e.tool === "storefront.publish_checkout_offer" && e.args.offer_id === ctx.offerId);
+    checks.push({ claim: `Apply button live at checkout for every customer`, ok: !!pr && !!lg && lg.status < 300 && !pr.revoked_at,
+                  evidence: pr ? (pr.revoked_at ? "revoked by owner" : `${lg ? lg.id + " · " : ""}store.promos · ${pr.id}`) : "no checkout offer in store" });
+  }
+  for (const aud of ["A", "B"]) {
+    if (!ctx.aud[aud].length) continue;
+    const j = ctx.judged[aud];
+    checks.push({ claim: `Email to ${aud === "A" ? "non-bookers" : "past clients"} passes the judge`, ok: j.pass,
+                  evidence: j.checks.filter(c => !c.ok).map(c => "failed: " + c.name).join("; ") || "all judge checks passed" });
+  }
+  return checks;
+}
+
+/* Model race: first valid JSON wins. */
+async function race(endpoints, playbook, input, valid, log) {
+  if (!endpoints.length) return null;
+  const t0 = performance.now();
+  try {
+    const out = await Promise.any(endpoints.map(async url => {
+      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ playbook, input }) });
+      const j = await r.json();
+      if (!r.ok || !valid(j)) throw new Error("invalid");
+      return { j, url };
+    }));
+    log.push({ id: "m" + log.length, at: nowTime(), tool: "llm." + playbook, args: { winner: out.url }, status: 200, ms: Math.round(performance.now() - t0) });
+    return out.j;
+  } catch {
+    log.push({ id: "m" + log.length, at: nowTime(), tool: "llm." + playbook, args: { note: "all models failed, used fallback" }, status: 502 });
+    return null;
+  }
+}
+
+/* ================= State ================= */
+const PROPOSALS = {}, PENDING = {};
+let HISTORY = [];
+let D = null, usingSample = false, key = null, selGap = 0, offerChoice = {}, LOG = [], done = {}, audView = "A";
+const tools = makeTools(LOG, { onSend: (a, p) => PRStore.addEmail({
+  to_email: a.to, offer_id: p.ctx.offerId, first_name: p.first_name, audience: a.audience, service_key: p.ctx.key, pay: p.ctx.pay, value: p.ctx.value,
+  ends: p.ctx.ends.toISOString(), spa: D.comp.me.name, brand: D.comp.me.brand, ...p.email, body: `Hi ${p.first_name}. ${p.email.body}` }) });
+
+async function loadJSON(p) { const r = await fetch(p, { cache: "no-store" }); if (!r.ok) throw 0; return r.json(); }
+
+const liveLeads = () => deriveLeads(DEMO.users, [...DEMO.events, ...PRStore.get().events]);
+
+async function load() {
+  let comp, clients, leadsFile = null;
+  comp = DEMO.competitors; clients = DEMO.clients; usingSample = true;   // demo data; swap in real data via demo-data.js
+  D = { comp, clients, leadsFile, leads: leadsFile || liveLeads() };
+  if (HISTORY.length) tools.note("history.load", { source: "price_history.csv", rows: HISTORY.length }, 200);
+  $("sampleBanner").style.display = usingSample ? "block" : "none";
+  $("areaLine").textContent = `${comp.me.name} · ${comp.area} · hackathon prototype`;
+  key = (comp.me.services.find(s => detectGaps(comp, s.key).length) || comp.me.services[0]).key;   // open on a treatment with a gap
+  tools.note("scan.load_competitors", { source: usingSample ? "demo-data.js" : "competitors.json", competitors: comp.competitors.length }, 200);
+  tools.note("store.load_leads", { source: leadsFile ? "leads.json" : "storefront events", leads: D.leads.length }, 200);
+  for (const url of [...OFFER_ENDPOINTS, ...EMAIL_ENDPOINTS]) fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ warm: true }) }).catch(() => {});
+  if (OFFER_ENDPOINTS.length || EMAIL_ENDPOINTS.length) tools.note("llm.warm_cache", { endpoints: OFFER_ENDPOINTS.length + EMAIL_ENDPOINTS.length }, 200);
+  $("warmLine").textContent = (window.PR_BUILD || "") + " · ready at " + nowTime() + (comp.scraped_at ? " · prices scanned " + fmtDate(new Date(comp.scraped_at)) : "");
+  PRStore.subscribe(() => { if (!D.leadsFile) D.leads = liveLeads(); render(); if (SEG) renderSegOut(); });
+  $("resetDemo").onclick = () => { PRStore.reset(); location.reload(); };
+  render();
+}
+
+/* ================= Render ================= */
+function render() {
+  const me = D.comp.me, mine = me.services.find(s => s.key === key);
+  $("tabs").innerHTML = me.services.map(s => `<button class="tab ${s.key === key ? "active" : ""}" data-k="${esc(s.key)}">${esc(s.label)}${s.cosmetic_intervention ? " · cosmetic" : ""}</button>`).join("");
+  document.querySelectorAll(".tab").forEach(t => t.onclick = () => { key = t.dataset.k; selGap = 0; render(); });
+
+  const gaps = detectGaps(D.comp, key);
+  $("gapCount").textContent = gaps.length ? `${gaps.length} found` : "none";
+  $("alerts").innerHTML = gaps.length ? gaps.map((g, i) => `
+    <div class="alert ${i === selGap ? "sel" : ""}" data-i="${i}">
+      <div class="row"><strong>${esc(g.competitor.name)}</strong><span class="big">${gbp(g.eff)}</span></div>
+      <div class="row sub"><span>${g.svc.offer_text ? esc(g.svc.offer_text) + " · " : ""}${g.competitor.distance_km} km · rated ${g.competitor.rating ?? "–"}${g.svc.evidence_url && g.svc.evidence_url !== "#" ? ` · <a href="${esc(g.svc.evidence_url)}" target="_blank" rel="noopener">source</a>` : ""}</span>
+      <span>${gbp(g.gap)} below your ${gbp(mine.price_gbp)}</span></div>
+    </div>`).join("") : `<p class="hint">No competitor is below your ${gbp(mine.price_gbp)} for this treatment. Nothing to do.</p>`;
+  document.querySelectorAll(".alert").forEach(a => a.onclick = () => { selGap = +a.dataset.i; render(); });
+
+  const rows = D.comp.competitors.map(c => ({ c, s: c.services.find(s => s.key === key) })).filter(x => x.s)
+    .map(x => ({ name: x.c.name, d: x.c.distance_km, r: x.c.rating, p: x.s.price_gbp, o: x.s.offer_price_gbp, f: x.c.on_fresha, me: false }));
+  rows.push({ name: me.name + " (you)", d: null, r: me.rating, p: mine.price_gbp, o: null, me: true });
+  rows.sort((a, b) => (a.o ?? a.p) - (b.o ?? b.p));
+  $("tableHint").textContent = `${rows.length - 1} competitors list ${mine.label.toLowerCase()}.`;
+  $("compTable").innerHTML = `<tr><th>Business</th><th class="num">Distance</th><th class="num">Rating</th><th class="num">Price</th><th class="num">Offer</th><th>Source</th></tr>` +
+    rows.map(r => `<tr class="${r.me ? "me" : ""}"><td>${esc(r.name)}</td><td class="num">${r.d == null ? "–" : r.d + " km"}</td><td class="num">${r.r ?? "–"}</td>
+      <td class="num">${gbp(r.p)}</td><td class="num">${r.o != null ? gbp(r.o) : "–"}</td><td>${r.me ? "" : `<span class="pill">${r.f ? "On Fresha" : "Not on Fresha"}</span>`}</td></tr>`).join("");
+
+  renderStorefront(); renderSegTracker();
+  renderHistory(mine, gaps);
+  renderOffer(gaps, me, mine);
+  renderLog();
+}
+
+function renderOffer(gaps, me, mine) {
+  const st = done[key];
+  if (!gaps.length && !st) { $("offerSource").textContent = ""; $("offerBody").innerHTML = `<p class="hint">No gap, so no offer proposed.</p>`; hideAfter(); return; }
+  const g = st ? st.gap : gaps[Math.min(selGap, gaps.length - 1)];
+  const pk = key + ":" + g.competitor.id;
+  const hist = historySummary(HISTORY, key, Date.now());
+  const proposal = st ? st.proposal : (PROPOSALS[pk] || ruleOffer(me, mine, g, hist));
+  if (!st && !PROPOSALS[pk] && OFFER_ENDPOINTS.length && !PENDING[pk]) {
+    PENDING[pk] = true;   // offer playbook only, with just this one gap in context
+    race(OFFER_ENDPOINTS, "offer", { spa: { name: me.name, rating: me.rating }, service: mine,
+         competitor: { name: g.competitor.name, rating: g.competitor.rating, distance_km: g.competitor.distance_km, price_gbp: g.eff, evidence_url: g.svc.evidence_url },
+         leads_price_in_mind: D.leads.filter(l => l.service_viewed === key && typeof l.price_in_mind_gbp === "number").map(l => l.price_in_mind_gbp),
+         own_history: hist && { current: hist.current, since: hist.since, last_change_gbp: hist.lastChange, cut_recently: hist.cutRecently } },
+         j => j && [tiers(mine.price_gbp).small, tiers(mine.price_gbp).large].includes(j.offer_gbp) && j.rationale, LOG)
+      .then(j => { if (j) { PROPOSALS[pk] = { ...j, _llm: true }; render(); } });
+  }
+  const choice = st ? st.value - st.pay : (offerChoice[key] ?? proposal.offer_gbp);
+  const aud = audiences(D.leads, D.clients, key, Date.now());
+  $("offerSource").textContent = proposal._llm ? "agent" : "placeholder rule";
+  $("offerBody").innerHTML = `
+    <p class="hint">Proposed in response to ${esc(g.competitor.name)} at ${gbp(g.eff)}.</p>
+    ${(() => { const T = tiers(mine.price_gbp); return `<div class="seg" id="seg"><button data-v="${T.small}" class="${choice === T.small ? "on" : ""}" ${st ? "disabled" : ""}>${gbp(T.small)} off</button><button data-v="${T.large}" class="${choice === T.large ? "on" : ""}" ${st ? "disabled" : ""}>${gbp(T.large)} off</button></div>`; })()}
+    ${choice === proposal.offer_gbp ? "" : `<span class="pill" style="margin-left:8px">agent suggested £${proposal.offer_gbp}</span>`}
+    <div class="why">${esc(proposal.rationale)}</div>
+    <div class="kv">
+      <div>Gift card</div><div>Client pays <strong>${gbp(mine.price_gbp - choice)}</strong>, gets a ${gbp(mine.price_gbp)} ${esc(mine.label.toLowerCase())} gift card</div>
+      <div>Offer window</div><div>${OFFER_WINDOW_HOURS} hours${mine.cosmetic_intervention ? " · cosmetic treatment, so no countdown wording" : ""}</div>
+      <div>Non-bookers</div><div>${aud.A.length} with consent${aud.A.length ? " (" + Object.entries(aud.A.reduce((m, l) => (m[l.source || "other"] = (m[l.source || "other"] || 0) + 1, m), {})).map(([k, v]) => `${v} ${({ checkout_abandoned: "left checkout", viewed: "viewed only" })[k] || k.replace(/_/g, " ")}`).join(", ") + ")" : ""}</div>
+      ${(() => { const ps = aud.A.map(l => l.price_in_mind_gbp).filter(v => typeof v === "number"); if (!ps.length) return "";
+         const sorted = [...ps].sort((a, b) => a - b), m = sorted.length % 2 ? sorted[(sorted.length - 1) / 2] : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2, pay = mine.price_gbp - choice;
+         return `<div>Price in mind</div><div>${gbp(m)} median from ${ps.length} lead${ps.length === 1 ? "" : "s"} · offer price ${gbp(pay)} is ${pay <= m ? "<strong style='color:var(--good)'>within it</strong>" : "<strong style='color:var(--warn)'>" + gbp(pay - m) + " above it</strong>"}</div>`; })()}
+      <div>Past clients</div><div>${aud.B.length} with consent (pre-book their next session)</div>
+      <div>Excluded</div><div>${aud.excluded.length} without marketing consent</div>
+      <div>At checkout</div><div>${gbp(choice)} off ${esc(mine.label.toLowerCase())} for anyone booking, email or not. Works with a deposit or paying in full</div>
+    </div>
+    <div class="btns">
+      <button class="primary" id="approve" ${st || approving ? "disabled" : ""}>${approving ? "Sending…" : st ? (st.denied ? "Denied" : "Approved and sent") : `Approve and send to ${aud.A.length + aud.B.length}`}</button>
+      <button class="ghost" id="deny" ${st ? "disabled" : ""}>Deny</button>
+    </div>
+    <div class="status" id="offerStatus">${st ? (st.denied ? "Denied. Nothing was sent." : `Approved at ${st.at}. Proof below.`) : "Nothing is sent until you press Approve."}${st ? ` <button class="ghost" id="newOffer" style="padding:4px 10px;font-size:12px;margin-left:6px">Start a new offer</button>` : ""}</div>`;
+  if (st) $("newOffer").onclick = () => { delete done[key]; delete offerChoice[key]; render(); };
+  if (!st) {
+    document.querySelectorAll("#seg button").forEach(b => b.onclick = () => { offerChoice[key] = +b.dataset.v; render(); });
+    $("approve").onclick = () => approve(g, proposal, choice, aud);
+    $("deny").onclick = () => { tools.note("owner.deny", { service: key, competitor: g.competitor.id }, 200); done[key] = { denied: true, gap: g, proposal, pay: mine.price_gbp - choice, value: mine.price_gbp, at: nowTime() }; render(); };
+  }
+  if (st && !st.denied) showAfter(st); else hideAfter();
+}
+
+function renderSegTracker() {
+  const st = PRStore.get(), segs = st.emails.filter(m => m.kind === "segment");
+  $("segCount").textContent = segs.length ? `${segs.length} sent · ${st.purchases.filter(p => segs.some(m => m.id === p.email_id)).length} bought` : "none sent yet";
+  $("segRevokeAll").disabled = !segs.some(m => !m.revoked_at && !st.purchases.some(p => p.email_id === m.id));
+  $("segRevokeAll").onclick = () => { const ids = segs.filter(m => !m.revoked_at && !st.purchases.some(p => p.email_id === m.id)).map(m => m.id); tools.note("offer.revoke", { kind: "segment", count: ids.length }, 200); PRStore.revoke(ids); };
+  $("segTable").innerHTML = segs.length ? `<tr><th>Name</th><th>Email</th><th>Segment</th><th>Offer</th><th>Status</th><th></th></tr>` + segs.map(m => {
+    const bought = st.purchases.some(p => p.email_id === m.id), c = D.clients.find(x => x.email === m.to_email);
+    return `<tr><td>${esc(m.first_name)}</td><td class="mono">${esc(m.to_email)}</td><td>${esc(m.segment)}</td><td>pay ${gbp(m.pay)}, get ${gbp(m.value)}</td>
+      <td>${bought ? `<span class="pill good">bought</span>` : m.revoked_at ? `<span class="pill bad">revoked</span>` : m.cleared_at ? `<span class="pill">inbox cleared</span>` : `<span class="pill good">in inbox</span>`}</td>
+      <td style="white-space:nowrap">${c ? `<button class="ghost" data-view="${esc(c.id)}" style="padding:4px 10px;font-size:12px">View in shop</button>` : ""}
+        ${!bought && !m.revoked_at ? `<button class="ghost" data-segrev="${esc(m.id)}" style="padding:4px 10px;font-size:12px;color:var(--bad)">Revoke</button>` : ""}</td></tr>`; }).join("")
+    : `<tr><td class="hint">Nothing sent yet. Run the agent on Price check, open Voucher campaign, press Approve &amp; send.</td></tr>`;
+  document.querySelectorAll("#segTable [data-view]").forEach(b => b.onclick = () => { PRStore.setSession(b.dataset.view, "inbox"); b.textContent = "Opened in shop ✓"; });
+  document.querySelectorAll("#segTable [data-segrev]").forEach(b => b.onclick = () => { tools.note("offer.revoke", { email_id: b.dataset.segrev }, 200); PRStore.revoke([b.dataset.segrev]); });
+}
+
+function renderStorefront() {
+  const st = PRStore.get(), me = D.comp.me, ss = PRStore.status();
+  $("syncLine").innerHTML = ss.ok ? `<span class="pill good">Synced with storefront · ${esc(ss.where)}</span>` : `<span class="pill bad" title="${esc(ss.warn)}">Not synced: ${esc(ss.warn)}</span>`;
+  const sent = st.emails.length, bought = st.purchases.length, rev = st.purchases.reduce((a, p) => a + p.paid_gbp, 0);
+  const leadsNow = D.leads.length, contactable = D.leads.filter(l => l.consent_marketing).length;
+  $("results").innerHTML = `<div>Leads (didn't book)</div><div><strong>${leadsNow}</strong> · ${contactable} opted in to marketing</div>
+    <div>Offer emails sent</div><div><strong>${sent}</strong></div>
+    <div>Vouchers used or bought</div><div><strong>${bought}</strong>${sent ? ` · ${Math.round(100 * bought / sent)}% of emails` : ""}</div>
+    <div>Revenue banked</div><div><strong style="color:var(--good)">${gbp(rev)}</strong> paid up front${st.purchases.some(p => p.balance_gbp) ? ` · ${gbp(st.purchases.reduce((a, p) => a + (p.balance_gbp || 0), 0))} more due on the day` : ""}</div>`;
+  const label = { view: "viewed", checkout_started: "opened checkout for", checkout_abandoned: "left without booking", booked: "booked", gift_card_purchased: "bought a gift card for" };
+  const vlabel = e => e.type === "booked" && e.voucher ? "booked with voucher:" : (label[e.type] || e.type);
+  const evs = [...DEMO.events, ...st.events].sort((a, b) => Date.parse(b.at) - Date.parse(a.at)).slice(0, 8);
+  $("feed").innerHTML = `<tr><th>When</th><th>Who</th><th>What</th></tr>` + evs.map(e => {
+    const u = DEMO.users.find(x => x.id === e.user_id), svc = me.services.find(x => x.key === e.service_key);
+    const when = new Date(e.at), today = when.toDateString() === new Date().toDateString();
+    return `<tr><td class="mono">${today ? when.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : when.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</td>
+      <td>${esc(u ? u.first_name + " " + u.last_name : e.user_id)}</td><td>${esc(vlabel(e))} ${esc(svc ? svc.label.toLowerCase() : "")}${e.price_in_mind_gbp ? ` <span class="pill">had ${gbp(e.price_in_mind_gbp)} in mind</span>` : ""}${e.paid_gbp ? ` <span class="pill good">paid ${gbp(e.paid_gbp)}</span>` : ""}</td></tr>`;
+  }).join("");
+}
+
+function renderHistory(mine, gaps) {
+  const h = historySummary(HISTORY, key, Date.now());
+  if (!h) { $("histChart").innerHTML = `<p class="hint" style="margin:0">${HISTORY.length ? "No history rows for this treatment." : "No history uploaded yet. The agent works without it, but can't tell whether you've cut prices recently."}</p>`; return; }
+  const change = h.lastChange ? ` Last change ${h.lastChange > 0 ? "+" : "−"}${gbp(Math.abs(h.lastChange))}.` : "";
+  $("histHint").textContent = `${gbp(h.current)} since ${h.since} (${h.sinceDays} days).${change}${h.cutRecently ? " Cut in the last 30 days, so the agent prefers £10." : ""}`;
+  const W = 640, H = 120, pad = 40, pts = h.rows, t0 = Date.parse(pts[0].date), t1 = Math.max(Date.now(), Date.parse(pts.at(-1).date));
+  const ref = gaps.length ? gaps[0].eff : null, vals = pts.map(p => p.price_gbp).concat(ref ?? []);
+  const lo = Math.min(...vals) - 5, hi = Math.max(...vals) + 5;
+  const X = t => pad + (t - t0) / ((t1 - t0) || 1) * (W - 2 * pad), Y = v => 14 + (hi - v) / ((hi - lo) || 1) * (H - 40);
+  let d = `M${X(t0)} ${Y(pts[0].price_gbp)}`;
+  pts.slice(1).forEach(p => { d += `H${X(Date.parse(p.date))}V${Y(p.price_gbp)}`; }); d += `H${X(t1)}`;
+  const day = t => new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  $("histChart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Your price history">
+    <path d="${d}" fill="none" stroke="#5b3df5" stroke-width="2"/>
+    ${pts.map(p => `<circle cx="${X(Date.parse(p.date))}" cy="${Y(p.price_gbp)}" r="3" fill="#5b3df5"><title>${esc(p.date)}: ${gbp(p.price_gbp)}</title></circle>`).join("")}
+    ${ref != null ? `<line x1="${pad}" x2="${W - pad}" y1="${Y(ref)}" y2="${Y(ref)}" stroke="#c0392b" stroke-dasharray="4 4"/><text x="${W - pad}" y="${Y(ref) - 5}" text-anchor="end" font-size="11" fill="#c0392b">${esc(gaps[0].competitor.name)} ${gbp(ref)}</text>` : ""}
+    <text x="${pad}" y="${H - 6}" font-size="11" fill="#6b6b76">${day(t0)}</text><text x="${W - pad}" y="${H - 6}" text-anchor="end" font-size="11" fill="#6b6b76">today</text>
+    <text x="${W - pad + 6}" y="${Y(h.current) + 4}" font-size="11" font-weight="600" fill="#5b3df5">${gbp(h.current)}</text>
+  </svg>`;
+}
+
+$("histFile").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rows = parseCSV(await f.text());
+  tools.note("history.upload", { file: f.name, valid_rows: rows.length }, rows.length ? 200 : 422);
+  if (rows.length) { HISTORY = rows; Object.keys(PROPOSALS).forEach(k => delete PROPOSALS[k]); }
+  else $("histHint").textContent = "No valid rows. Needs columns date, service_key, price_gbp.";
+  render();
+};
+
+function hideAfter() { $("verifyCard").style.display = "none"; $("emailCard").style.display = "none"; }
+
+let approving = false;
+async function approve(g, proposal, choice, aud) {
+  if (approving) return;   // one approval at a time, even if the page redraws mid-send
+  approving = true;
+  try { await doApprove(g, proposal, choice, aud); } finally { approving = false; render(); }
+}
+async function doApprove(g, proposal, choice, aud) {
+  $("approve").disabled = true; $("approve").textContent = "Sending…";
+  const me = D.comp.me, mine = me.services.find(s => s.key === key);
+  tools.note("owner.approve", { service: key, offer_gbp: choice }, 200);
+  const ends = new Date(Date.now() + OFFER_WINDOW_HOURS * 3600e3);
+  const ctx = { key, label: mine.label, cosmetic: !!mine.cosmetic_intervention, pay: mine.price_gbp - choice, value: mine.price_gbp, ends, aud,
+                competitorNames: D.comp.competitors.map(c => c.name), emails: {}, judged: {}, offerId: "of" + Date.now(), live: true,
+                /* Never email the same person twice for this treatment while an earlier offer is still live. */
+                sentBefore: p => PRStore.get().emails.some(m => m.to_email === p.email && m.service_key === key && !m.revoked_at && Date.parse(m.ends) > Date.now()) };
+  for (const a of ["A", "B"]) {
+    const llm = await race(EMAIL_ENDPOINTS, "email", { brand: me.brand, spa: me.name, service: mine, offer_gbp: choice, audience: a, ends: ends.toISOString() },
+                           j => j && j.subject && j.body, LOG);
+    ctx.emails[a] = llm ? { ...llm, footer: llm.footer || templateEmail(me, mine, choice, a, ends).footer } : templateEmail(me, mine, choice, a, ends);
+    ctx.judged[a] = localJudge(ctx.emails[a], ctx);
+    tools.note("judge.local", { audience: a, pass: ctx.judged[a].pass }, 200);
+  }
+  executeApproval(ctx, tools);
+  PRStore.addPromo({ id: ctx.offerId, service_key: key, label: mine.label, pay: ctx.pay, value: ctx.value, ends: ends.toISOString(), spa: me.name });
+  tools.note("storefront.publish_checkout_offer", { offer_id: ctx.offerId, service: key, pay_gbp: ctx.pay, value_gbp: ctx.value }, 201);
+  done[key] = { ...ctx, gap: g, proposal, at: nowTime() };
+  render();
+}
+
+function showAfter(st) {
+  const checks = verify(st, LOG), passed = checks.filter(c => c.ok).length;
+  $("verifyCard").style.display = "block";
+  $("verifyScore").className = "pill " + (passed === checks.length ? "good" : "bad");
+  $("verifyScore").textContent = `${passed} of ${checks.length} proven`;
+  $("verifyAsk").textContent = `You asked: send ${gbp(st.value - st.pay)} off ${st.label.toLowerCase()} as a prepaid gift card to consenting non-bookers and past clients.`;
+  $("verifyBody").innerHTML = checks.map(c => `<div class="check"><span class="mark ${c.ok ? "ok" : "no"}">${c.ok ? "✓" : "✗"}</span>
+    <div><div>${esc(c.claim)}</div><div class="mono" style="color:var(--muted)">${esc(c.evidence)}</div></div></div>`).join("");
+
+  $("emailCard").style.display = "block";
+  const auds = ["A", "B"].filter(a => st.aud[a].length);
+  if (!auds.includes(audView)) audView = auds[0];
+  $("audSeg").innerHTML = auds.map(a => `<button class="${a === audView ? "on" : ""}" data-a="${a}" style="padding:4px 10px;font-size:12px">${a === "A" ? "Non-bookers" : "Past clients"}</button>`).join("");
+  document.querySelectorAll("#audSeg button").forEach(b => b.onclick = () => { audView = b.dataset.a; render(); });
+  const store = PRStore.get(), inboxes = store.emails.filter(m => m.offer_id === st.offerId);
+  const used = m => store.purchases.some(p => p.email_id === m.id);
+  const rows = [...st.aud.A.map(p => ({ p, a: "Non-booker" })), ...st.aud.B.map(p => ({ p, a: "Past client" }))];
+  const pr0 = PRStore.get().promos.find(p => p.id === st.offerId);
+  const nSent = LOG.filter(e => e.tool === "email.send" && e.args.offer_id === st.offerId).length, nDup = LOG.filter(e => e.tool === "email.skip_duplicate" && e.args.offer_id === st.offerId).length;
+  $("recCount").textContent = `${nSent} sent${nDup ? ` · ${nDup} skipped (already have a live offer)` : ""} · ${st.aud.excluded.length} skipped (no consent) · checkout offer ${pr0 && !pr0.revoked_at ? "live" : "off"}`;
+  $("recTable").innerHTML = `<tr><th>Name</th><th>Email address</th><th>Audience</th><th>Status</th><th></th></tr>` +
+    rows.map(({ p, a }) => { const log = LOG.find(e => e.tool === "email.send" && e.args.person === p.id && e.args.offer_id === st.offerId), inb = inboxes.find(m => m.to_email === p.email);
+      if (!log && LOG.some(e => e.tool === "email.skip_duplicate" && e.args.person === p.id && e.args.offer_id === st.offerId))
+        return `<tr><td>${esc(p.first_name)}</td><td class="mono">${esc(p.email)}</td><td>${a}</td><td><span class="pill">skipped: already has a live offer</span></td><td><button class="ghost" data-view="${esc(p.user_id || p.id)}" style="padding:4px 10px;font-size:12px">View in shop</button></td></tr>`;
+      return `<tr><td>${esc(p.first_name)}</td><td class="mono">${esc(p.email)}</td><td>${a}</td>
+        <td>${log ? `<span class="pill ${log.status < 300 ? "good" : "bad"}">sent ${log.status}</span>` : `<span class="pill bad">not sent</span>`} ${!inb ? `<span class="pill bad">not in inbox</span>` : inb.cleared_at ? `<span class="pill">inbox cleared</span>` : `<span class="pill good">in inbox</span>`}
+          ${inb && used(inb) ? `<span class="pill good">used</span>` : inb && inb.revoked_at ? `<span class="pill bad">revoked</span>` : ""}</td>
+        <td style="white-space:nowrap"><button class="ghost" data-view="${esc(p.user_id || p.id)}" style="padding:4px 10px;font-size:12px">View in shop</button>
+          ${inb && !inb.revoked_at && !used(inb) ? `<button class="ghost" data-revoke="${esc(inb.id)}" data-name="${esc(p.first_name)}" style="padding:4px 10px;font-size:12px;color:var(--bad)">Revoke</button>` : ""}</td></tr>`; }).join("") +
+    st.aud.excluded.map(p => `<tr style="opacity:.5"><td>${esc(p.first_name)}</td><td class="mono">${esc(p.email)}</td><td>${p.user_id ? "Non-booker" : "Past client"}</td><td><span class="pill">skipped: no consent</span></td><td></td></tr>`).join("");
+  document.querySelectorAll("[data-view]").forEach(b => b.onclick = () => { PRStore.setSession(b.dataset.view, "inbox"); b.textContent = "Opened in shop ✓"; });
+  document.querySelectorAll("[data-revoke]").forEach(b => b.onclick = () => { tools.note("offer.revoke", { email_id: b.dataset.revoke, person: b.dataset.name }, 200); PRStore.revoke([b.dataset.revoke]); });
+  const promo = store.promos.find(p => p.id === st.offerId);
+  const unusedIds = [...inboxes.filter(m => !m.revoked_at && !used(m)).map(m => m.id), ...(promo && !promo.revoked_at ? [promo.id] : [])];
+  $("revokeAll").disabled = !unusedIds.length;
+  $("revokeAll").textContent = promo && !promo.revoked_at ? "Revoke all unused + checkout offer" : "Revoke all unused";
+  $("revokeAll").onclick = () => { tools.note("offer.revoke", { offer_id: st.offerId, count: unusedIds.length }, 200); PRStore.revoke(unusedIds); };
+  if (!auds.length) { $("emailBody").innerHTML = `<p class="hint">No one with consent to email for this treatment.</p>`; return; }
+  const e = st.emails[audView], br = D.comp.me.brand || {};
+  $("emailBody").innerHTML = `
+    <div class="meta">To ${st.aud[audView].length} ${audView === "A" ? "non-booker" : "past client"}${st.aud[audView].length === 1 ? "" : "s"} · Subject: <strong>${esc(e.subject)}</strong><br>${esc(e.preheader || "")}</div>
+    <div class="email">
+      <div class="bar" style="background:${esc(br.primary || "#333")}">${esc(D.comp.me.name)}</div>
+      <div class="inner"><h3>${esc(e.headline)}</h3><div>${esc(e.body)}</div>
+        <span class="cta" style="background:${esc(br.accent || "#333")}">${esc(e.cta)}</span></div>
+      <div class="foot">${esc(e.footer)}</div>
+    </div>`;
+}
+
+function renderLog() {
+  $("logTable").innerHTML = `<tr><th>Time</th><th>Tool</th><th>Details</th><th class="num">Status</th></tr>` +
+    [...LOG].reverse().map(e => `<tr><td class="mono">${e.at}</td><td class="mono">${esc(e.tool)}</td>
+      <td class="mono" style="color:var(--muted)">${esc(JSON.stringify(e.args).slice(0, 110))}</td>
+      <td class="num"><span class="pill ${e.status < 300 ? "good" : "bad"}">${e.status}</span></td></tr>`).join("");
+}
+
+/* ================= Agent (team backend: POST /api/run) ================= */
+const API_BASE = new URLSearchParams(location.search).get("api") || "";
+let AGENT = null, SEG = null;
+const SEG_RULES = "lapsed: last visit over 60 days ago · vip: within 60 days and £700+ lifetime spend · regular: within 60 days and under £700";
+function segmentOf(c, now) { const days = (now - Date.parse(c.last_visit)) / 864e5; return days > 60 ? "lapsed" : (c.lifetime_spend >= 700 ? "vip" : "regular"); }
+const safeUrl = u => /^https?:\/\//i.test(String(u || "")) ? String(u) : null;
+const num = v => typeof v === "number" ? v : Number(v);
+
+if ($("agentForm")) $("agentForm").onsubmit = async e => {
+  e.preventDefault();
+  const body = { goal: $("aGoal").value, area: $("aArea").value, radius: num($("aRadius").value), floor: num($("aFloor").value) };
+  $("aRun").disabled = true; $("aRun").textContent = "Running…"; $("agentStatus").textContent = "agent working: research → pricing → segments → drafts";
+  const t0 = performance.now();
+  try {
+    const r = await fetch(API_BASE + "/api/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => null);
+    LOG.push({ id: "a" + LOG.length, at: nowTime(), tool: "agent.run", args: { area: body.area, radius: body.radius, floor: body.floor, steps: j?.steps?.length ?? 0, fallback: !!j?.fallback }, status: r.status, ms: Math.round(performance.now() - t0) });
+    if (!r.ok || !j) throw new Error("HTTP " + r.status);
+    AGENT = j; SEG = null;
+    $("agentStatus").textContent = `done in ${((performance.now() - t0) / 1000).toFixed(1)}s` + (j.fallback ? " · fallback used" : "");
+  } catch (err) {
+    LOG.push({ id: "a" + LOG.length, at: nowTime(), tool: "agent.run", args: { error: String(err.message || err) }, status: 502 });
+    $("agentStatus").textContent = "backend not reachable";
+    $("agentOut").innerHTML = `<div class="why" style="background:var(--bad-soft);color:var(--bad)">Couldn't reach the backend at <span class="mono">${esc(API_BASE || location.origin)}/api/run</span> (${esc(err.message || err)}). Start it with <span class="mono">uvicorn server:app --port 8000</span> and open this page from <span class="mono">http://localhost:8000/</span>, or add <span class="mono">?api=http://localhost:8000</span> to this page's address.</div>`;
+    $("aRun").disabled = false; $("aRun").textContent = "Run agent"; renderLog(); return;
+  }
+  $("aRun").disabled = false; $("aRun").textContent = "Run agent again";
+  renderAgent(); renderLog();
+};
+
+function renderAgent() {
+  const j = AGENT; if (!j) return;
+  const res = j.research || {}, pr = j.pricing || {}, camp = j.campaign || {}, segs = camp.segments || {}, drafts = j.drafts || {};
+  const sources = (res.sources || []).map(s => ({ title: s.title || s.url, url: safeUrl(s.url) })).filter(s => s.url);
+  const recs = pr.recommendations || [];
+  const actPill = a => `<span class="pill ${/raise/i.test(a) ? "good" : /voucher/i.test(a) ? "bad" : ""}">${esc(a)}</span>`;
+  const now = Date.now(), demoSeg = { lapsed: [], vip: [], regular: [] }, excluded = [];
+  D.clients.forEach(c => { if (c.consent_marketing !== true) excluded.push(c); else (demoSeg[segmentOf(c, now)] ||= []).push(c); });
+  $("agentOut").innerHTML = `
+    ${j.fallback ? `<div class="why" style="background:#fff4e0;color:#7a4a00">Fallback: ${esc(j.fallback)}</div>` : ""}
+    <div>${(j.steps || []).map((s, i) => `<span class="chip">${i + 1}. ${esc(s)}</span>`).join("")}</div>
+    <div class="why" style="white-space:pre-wrap;margin-top:6px"><strong>Owner brief</strong>\n${esc(j.brief || "No brief returned.")}</div>
+    <div class="agentGrid">
+      <div>
+        <h2 style="margin-top:4px">Price check <span class="pill">floor ${esc(pr.margin_floor_pct ?? "")}% margin · uplift ${gbp(num(pr["price_uplift_per_full_menu_£"]) || 0)} per full menu</span></h2>
+        <p class="hint">${esc(res.competitors_sampled ?? "?")} competitors sampled within ${esc(res.radius_miles ?? "?")} miles of ${esc(res.area || "")}. Gap % = (your price − local median) ÷ median.</p>
+        <table><tr><th>Service</th><th class="num">Yours</th><th class="num">Median</th><th class="num">Range</th><th class="num">Gap</th><th class="num">Floor</th><th class="num">Recommend</th><th>Action</th></tr>
+          ${recs.map(r => `<tr><td>${esc(r.service)}</td><td class="num">${gbp(num(r["ABC price £"]))}</td><td class="num">${gbp(num(r["local median £"]))}</td><td class="num">${esc(r["local range £"])}</td>
+            <td class="num">${esc(r["gap %"])}%</td><td class="num">${gbp(num(r["margin floor £"]))}</td><td class="num"><strong>${gbp(num(r["recommended £"]))}</strong></td><td>${actPill(r.action || "")}</td></tr>`).join("")}
+        </table>
+        <p class="hint" style="margin-top:10px">Sources found by Tavily: ${sources.length ? sources.slice(0, 8).map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>`).join(" · ") : "none returned"}</p>
+      </div>
+      <div>
+        <h2 style="margin-top:4px">Voucher campaign <span class="pill">${esc(camp.opted_out_excluded ?? 0)} excluded (no consent)</span></h2>
+        <p class="hint">${SEG_RULES}.</p>
+        <table><tr><th>Segment</th><th class="num">Clients</th><th>Offer</th><th>Expires</th><th class="num">Projected upfront</th></tr>
+          ${Object.entries(segs).map(([k, v]) => `<tr><td><strong>${esc(k)}</strong><div class="hint" style="margin:0">${esc(v.pitch || "")}</div></td><td class="num">${esc(v.count)}</td>
+            <td>pay ${gbp(num(v.pay))}, get ${gbp(num(v.get))}</td><td>${esc(v.expires)}</td><td class="num">${gbp(num(v["projected_£_upfront"]) || 0)}</td></tr>`).join("")}
+        </table>
+        <h2 style="margin-top:14px">Drafted emails</h2>
+        ${Object.entries(drafts).map(([k, t]) => `<details class="draft"><summary>${esc(k)}</summary><pre>${esc(t)}</pre></details>`).join("") || `<p class="hint">No drafts returned.</p>`}
+        <div class="why" style="margin-top:10px">In this demo shop: ${Object.keys(segs).map(k => `${(demoSeg[k] || []).length} ${esc(k)}`).join(", ")} opted-in clients, ${excluded.length} without consent. The backend's 400-client counts are its own synthetic list.</div>
+        <div class="btns"><button class="primary" id="segLaunch" ${SEG ? "disabled" : ""}>${SEG ? "Approved and sent" : "Approve and send segment vouchers"}</button>
+          ${SEG ? `<button class="ghost" id="segRevoke">Revoke unused segment vouchers</button>` : ""}</div>
+        <div id="segOut"></div>
+      </div>
+    </div>`;
+  $("segLaunch").onclick = () => launchSegments(segs, drafts, demoSeg);
+  if (SEG) { $("segRevoke").onclick = () => { const st = PRStore.get(); const ids = st.emails.filter(m => m.offer_id === SEG.offerId && !m.revoked_at && !st.purchases.some(p => p.email_id === m.id)).map(m => m.id);
+      tools.note("offer.revoke", { offer_id: SEG.offerId, count: ids.length }, 200); PRStore.revoke(ids); }; renderSegOut(); }
+}
+
+function launchSegments(segs, drafts, demoSeg) {
+  if (SEG) return;
+  const offerId = "seg" + Date.now(), me = D.comp.me, store = PRStore.get();
+  SEG = { offerId, sent: [], skipped: [] };
+  tools.note("owner.approve_campaign", { offer_id: offerId, segments: Object.keys(segs).length }, 200);
+  for (const [k, v] of Object.entries(segs)) {
+    const ends = isNaN(Date.parse(v.expires)) ? new Date(Date.now() + 14 * 864e5) : new Date(Date.parse(v.expires) + 86399e3);
+    for (const c of demoSeg[k] || []) {
+      if (store.emails.some(m => m.kind === "segment" && m.to_email === c.email && !m.revoked_at && Date.parse(m.ends) > Date.now())) {
+        tools.note("email.skip_duplicate", { to: c.email, person: c.id, segment: k, offer_id: offerId }, 200); SEG.skipped.push(c); continue; }
+      const code = "ABC-" + Math.random().toString(36).slice(2, 7).toUpperCase();
+      const raw = String(drafts[k] || "").replaceAll("{first_name}", c.first_name).replaceAll("{VOUCHER_CODE}", code);
+      const subj = (raw.match(/^\s*subject\s*:\s*(.+)$/im) || [])[1] || `${me.name}: pay ${gbp(num(v.pay))}, get ${gbp(num(v.get))}`;
+      const bodyText = raw.replace(/^\s*subject\s*:.*$/im, "").trim() || `Hi ${c.first_name}, pay ${gbp(num(v.pay))} and get ${gbp(num(v.get))} to spend with us. Code ${code}.`;
+      const e = tools.sendEmail({ to: c.email, person: c.id, segment: k, offer_id: offerId, subject: subj }, null);
+      PRStore.addEmail({ to_email: c.email, offer_id: offerId, kind: "segment", segment: k, first_name: c.first_name, service_key: null, pay: num(v.pay), value: num(v.get),
+        ends: ends.toISOString(), spa: me.name, brand: me.brand, subject: subj, headline: `${me.name} gift card: pay ${gbp(num(v.pay))}, get ${gbp(num(v.get))}`,
+        body: bodyText, cta: "Buy gift card", code, footer: `${me.brand?.sign_off || me.name}. You're receiving this because you agreed to hear from us. Unsubscribe any time.` });
+      SEG.sent.push({ c, k, logId: e.id, status: e.status });
+    }
+  }
+  renderAgent(); renderLog();
+}
+
+function renderSegOut() {
+  const st = PRStore.get(), mine = st.emails.filter(m => m.offer_id === SEG.offerId);
+  const rows = SEG.sent.map(({ c, k, logId, status }) => { const m = mine.find(x => x.to_email === c.email), used = m && st.purchases.some(p => p.email_id === m.id);
+    return `<tr><td>${esc(c.first_name)}</td><td class="mono">${esc(c.email)}</td><td>${esc(k)}</td>
+      <td><span class="pill ${status < 300 ? "good" : "bad"}">sent ${status}</span> ${m ? (m.cleared_at ? `<span class="pill">inbox cleared</span>` : `<span class="pill good">in inbox</span>`) : `<span class="pill bad">not in inbox</span>`}
+        ${used ? `<span class="pill good">bought</span>` : m && m.revoked_at ? `<span class="pill bad">revoked</span>` : ""}</td>
+      <td><button class="ghost" data-view="${esc(c.id)}" style="padding:4px 10px;font-size:12px">View in shop</button></td></tr>`; }).join("");
+  const proven = SEG.sent.filter(({ c, status }) => status < 300 && mine.some(m => m.to_email === c.email)).length;
+  $("segOut").innerHTML = `<p class="hint" style="margin-top:10px"><span class="pill ${proven === SEG.sent.length ? "good" : "bad"}">${proven} of ${SEG.sent.length} proven delivered</span>${SEG.skipped.length ? ` · ${SEG.skipped.length} skipped (already have a live gift card offer)` : ""}</p>
+    <table><tr><th>Name</th><th>Email</th><th>Segment</th><th>Status</th><th></th></tr>${rows}</table>`;
+  document.querySelectorAll("#segOut [data-view]").forEach(b => b.onclick = () => { PRStore.setSession(b.dataset.view, "inbox"); b.textContent = "Opened in shop ✓"; });
+}
+
+/* ================= Test scenarios: each one could fail ================= */
+function fixture({ myRating = 4.8, theirPrice = 180, theirRating = 4.5, cosmetic = false, leadConsent = true }) {
+  return {
+    comp: { me: { name: "Test Spa", rating: myRating, brand: { sign_off: "Test Spa" },
+                  services: [{ key: "t", label: "Test treatment", price_gbp: 200, cosmetic_intervention: cosmetic }] },
+            competitors: [{ id: "x", name: "Rival Clinic", rating: theirRating, distance_km: 0.5, services: [{ key: "t", price_gbp: theirPrice }] }] },
+    leads: [{ id: "L", first_name: "Lead", email: "l@test", service_viewed: "t", abandoned_at: new Date(Date.now() - 864e5).toISOString(), consent_marketing: leadConsent }],
+    clients: [{ id: "C", first_name: "Client", email: "c@test", last_service: "t", consent_marketing: true }]
+  };
+}
+
+function runFlow(f, { approve = true, failEmail = false, tamper = null, hist = null } = {}) {
+  const log = [], t = makeTools(log, { failEmail });
+  const gaps = detectGaps(f.comp, "t"), mine = f.comp.me.services[0];
+  if (!gaps.length) return { gaps, log };
+  const prop = ruleOffer(f.comp.me, mine, gaps[0], hist);
+  if (!approve) { t.note("owner.deny", {}, 200); return { gaps, prop, log }; }
+  const ends = new Date(Date.now() + OFFER_WINDOW_HOURS * 3600e3);
+  const ctx = { key: "t", label: mine.label, cosmetic: !!mine.cosmetic_intervention, pay: mine.price_gbp - prop.offer_gbp, value: mine.price_gbp, ends,
+                aud: audiences(f.leads, f.clients, "t", Date.now()), competitorNames: f.comp.competitors.map(c => c.name), emails: {}, judged: {} };
+  for (const a of ["A", "B"]) {
+    ctx.emails[a] = templateEmail(f.comp.me, mine, prop.offer_gbp, a, ends);
+    if (tamper) ctx.emails[a] = tamper(ctx.emails[a]);
+    ctx.judged[a] = localJudge(ctx.emails[a], ctx);
+  }
+  executeApproval(ctx, t);
+  return { gaps, prop, ctx, log, checks: verify(ctx, log) };
+}
+
+const SCENARIOS = [
+  { name: "Rival much cheaper, we're better rated → alert, smaller offer", run: () => { const r = runFlow(fixture({ myRating: 4.8, theirRating: 4.5, theirPrice: 150 })); return r.gaps.length === 1 && r.prop.tier === "small"; } },
+  { name: "Rival much cheaper, we're lower rated → alert, larger offer", run: () => { const r = runFlow(fixture({ myRating: 4.2, theirRating: 4.7, theirPrice: 150 })); return r.gaps.length === 1 && r.prop.tier === "large" && r.prop.offer_gbp === tiers(200).large; } },
+  { name: "Every competitor dearer → no alert, nothing sent", run: () => { const r = runFlow(fixture({ theirPrice: 220 })); return r.gaps.length === 0 && !r.log.some(e => e.tool === "email.send"); } },
+  { name: "Owner denies → no email.send in the log", run: () => { const r = runFlow(fixture({}), { approve: false }); return !r.log.some(e => e.tool === "email.send"); } },
+  { name: "Lead without consent → not emailed, shown as excluded", run: () => { const r = runFlow(fixture({ leadConsent: false })); return !r.log.some(e => e.tool === "email.send" && e.args.person === "L") && r.ctx.aud.excluded.some(p => p.id === "L"); } },
+  { name: "Email names a competitor → judge fails it", run: () => { const r = runFlow(fixture({}), { tamper: e => ({ ...e, body: e.body + " Cheaper than Rival Clinic!" }) }); return r.ctx.judged.A.pass === false; } },
+  { name: "Email API returns an error → proof panel says unproven", run: () => { const r = runFlow(fixture({}), { failEmail: true }); return r.checks.filter(c => c.claim.startsWith("Email sent")).every(c => !c.ok); } },
+  { name: "We cut our price 10 days ago → smaller offer, even when lower rated", run: () => {
+      const d = n => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
+      const hist = historySummary(parseCSV(`date,service_key,price_gbp\n${d(90)},t,220\n${d(10)},t,200`), "t", Date.now());
+      const r = runFlow(fixture({ myRating: 4.2, theirRating: 4.7, theirPrice: 150 }), { hist });
+      return hist.cutRecently && r.prop.tier === "small"; } },
+  { name: "Signed-in user viewed then booked → not a lead", run: () => {
+      const users = [{ id: "a", first_name: "A", email: "a@test", consent_marketing: true }];
+      const t = n => new Date(Date.now() - n * 6e4).toISOString();
+      return deriveLeads(users, [{ user_id: "a", type: "view", service_key: "t", at: t(5) }, { user_id: "a", type: "booked", service_key: "t", at: t(4) }]).length === 0; } },
+  { name: "User left checkout without opting in → lead, never emailed", run: () => {
+      const users = [{ id: "b", first_name: "B", email: "b@test", consent_marketing: false }];
+      const leads = deriveLeads(users, [{ user_id: "b", type: "checkout_abandoned", service_key: "t", at: new Date().toISOString(), price_in_mind_gbp: 170 }]);
+      const f = fixture({}); f.leads = leads; const r = runFlow(f);
+      return leads.length === 1 && leads[0].price_in_mind_gbp === 170 && !r.log.some(e => e.tool === "email.send" && e.args.person === leads[0].id); } },
+  { name: "Approve fires twice → each person emailed once", run: () => {
+      const log = [], t = makeTools(log), f = fixture({}), mine = f.comp.me.services[0];
+      const ctx = { key: "t", label: mine.label, pay: 190, value: 200, ends: new Date(Date.now() + 864e5), aud: audiences(f.leads, f.clients, "t", Date.now()),
+                    emails: { A: templateEmail(f.comp.me, mine, 10, "A", new Date()), B: templateEmail(f.comp.me, mine, 10, "B", new Date()) },
+                    sentBefore: p => log.some(e => e.tool === "email.send" && e.args.person === p.id && e.args.service === "t" && e.status < 300) };
+      executeApproval(ctx, t); executeApproval(ctx, t);
+      const per = {}; log.filter(e => e.tool === "email.send").forEach(e => per[e.args.person] = (per[e.args.person] || 0) + 1);
+      return Object.keys(per).length === 2 && Object.values(per).every(n => n === 1); } },
+  { name: "Segments: 90 days → lapsed, 20 days £900 → vip, 20 days £300 → regular", run: () => {
+      const n = Date.now(), d = k => new Date(n - k * 864e5).toISOString();
+      return segmentOf({ last_visit: d(90), lifetime_spend: 900 }, n) === "lapsed" && segmentOf({ last_visit: d(20), lifetime_spend: 900 }, n) === "vip" && segmentOf({ last_visit: d(20), lifetime_spend: 300 }, n) === "regular"; } },
+  { name: "Cosmetic treatment → no countdown wording", run: () => { const r = runFlow(fixture({ cosmetic: true })); const all = ["A", "B"].map(a => Object.values(r.ctx.emails[a]).join(" ")).join(" "); return !URGENCY.test(all) && r.ctx.judged.A.pass; } }
+];
+
+$("runTests").onclick = () => {
+  const res = SCENARIOS.map(s => { let ok = false, err = ""; try { ok = !!s.run(); } catch (e) { err = e.message; } return { ...s, ok, err }; });
+  const passed = res.filter(r => r.ok).length;
+  $("testBody").innerHTML = `<div class="score">${passed} / ${res.length}</div><div class="hint">scenarios passed at ${nowTime()}</div>` +
+    res.map(r => `<div class="check"><span class="mark ${r.ok ? "ok" : "no"}">${r.ok ? "✓" : "✗"}</span><div>${esc(r.name)}${r.err ? `<div class="mono" style="color:var(--bad)">${esc(r.err)}</div>` : ""}</div></div>`).join("");
+};
+
+load();
+</script>
+</body>
+</html>

@@ -217,3 +217,8 @@ def api_run(req: RunReq):
     return {"brief": brief, "steps": [n for n, _, _ in trace], "fallback": fallback,
             "research": res["research_competitors"], "pricing": res["analyse_pricing"],
             "campaign": res["segment_and_offer"], "drafts": drafts}
+
+
+# Serve the rest of static/ (customer site, campaigns app, shared demo store). Mounted last so / and /api/* above win.
+from fastapi.staticfiles import StaticFiles
+app.mount("/", StaticFiles(directory=os.path.join(HERE, "static"), html=True), name="static")

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Book · storefront demo</title>
+<style>
+  :root { --ink:#17171c; --muted:#6b6b76; --line:#e4e4ea; --bg:#f4f3f0; --card:#fff; --primary:#2f4a43; --accent:#b88a5a; --good:#0f8a5f; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif; color:var(--ink); background:var(--bg); }
+  .phone { max-width:430px; margin:0 auto; min-height:100vh; background:var(--card); box-shadow:0 0 0 1px var(--line); }
+  .top { background:var(--primary); color:#fff; padding:16px 18px; }
+  .top .name { font-weight:700; font-size:18px; }
+  .top .who { font-size:13px; opacity:.9; margin-top:2px; display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+  .top .who a { flex:none; }
+  .top .who a { color:#fff; cursor:pointer; text-decoration:underline; }
+  .demo { background:#fff4e0; color:#7a4a00; font-size:12px; padding:6px 18px; }
+  nav { display:flex; border-bottom:1px solid var(--line); }
+  nav button { flex:1; background:none; border:0; padding:12px 0; font:inherit; font-size:14px; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; }
+  nav button.on { color:var(--ink); border-color:var(--primary); font-weight:600; }
+  .pad { padding:16px 18px; }
+  .svc { border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px; cursor:pointer; }
+  .svc .row { display:flex; justify-content:space-between; gap:8px; font-weight:600; }
+  .muted { color:var(--muted); font-size:13px; }
+  .btn { display:block; width:100%; border:0; border-radius:10px; padding:13px; font:inherit; font-weight:600; color:#fff; background:var(--primary); cursor:pointer; margin-top:10px; }
+  .btn.alt { background:none; color:var(--ink); border:1px solid var(--line); }
+  .btn.acc { background:var(--accent); }
+  .btn:disabled { opacity:.5; cursor:default; }
+  .sheet { position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:flex-end; justify-content:center; }
+  .sheet.on { display:flex; }
+  .sheet .box { background:#fff; width:100%; max-width:430px; border-radius:16px 16px 0 0; padding:20px 18px 24px; }
+  .sheet h3 { margin:0 0 4px; }
+  .line { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; }
+  input, select { font:inherit; padding:11px 12px; border:1px solid var(--line); border-radius:10px; width:100%; margin-top:6px; }
+  .mail { border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:14px; }
+  .mail .bar { padding:12px 14px; color:#fff; font-weight:700; }
+  .mail .in { padding:14px; }
+  .mail h4 { margin:0 0 6px; font-size:17px; }
+  .mail .foot { padding:10px 14px; font-size:11.5px; color:var(--muted); border-top:1px solid var(--line); }
+  .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; background:#e3f5ec; color:var(--good); }
+  .toast { margin:10px 18px 0; padding:12px 14px; border-radius:10px; background:var(--accent); color:#fff; display:flex; justify-content:space-between; align-items:center; gap:10px; font-weight:600; cursor:pointer; }
+  .offer { margin-top:10px; padding:10px 12px; border-radius:10px; background:#f6efe6; border:1px solid var(--accent); font-size:13px; }
+  .offer b { color:#6b4520; }
+  .empty { text-align:center; color:var(--muted); padding:40px 10px; }
+  .top { background:#fff !important; color:var(--ink) !important; border-bottom:1px solid var(--line); }
+  .top .name { font-weight:800 !important; letter-spacing:-.03em; }
+  .top .who, .top .who a { color:var(--muted) !important; opacity:1 !important; }
+  .btn { background:var(--ink) !important; border-radius:999px !important; font-weight:700 !important; }
+  .btn.alt { background:#fff !important; color:var(--ink) !important; border:1px solid var(--line) !important; }
+  .btn.acc { background:var(--purple) !important; }
+  .svc { border-radius:18px !important; background:var(--soft) !important; border:0 !important; }
+  .offer { background:var(--accent-soft) !important; border-color:var(--purple) !important; border-radius:14px !important; }
+  .offer b { color:var(--purple) !important; }
+  .toast { background:var(--purple) !important; border-radius:14px !important; }
+  nav button.on { border-color:var(--ink) !important; font-weight:700 !important; }
+  .mail { border-radius:18px !important; } .mail .bar { background:var(--ink) !important; }
+  .demo { background:#FEF3E2 !important; color:#B45309 !important; }
+  .sheet .box { border-radius:22px 22px 0 0 !important; }
+  input, select { border-radius:12px !important; }
+</style>
+<link rel="stylesheet" href="rr-theme.css?v=13">
+</head>
+<body>
+<div class="phone">
+  <div class="top"><div style="font-size:.75rem;font-weight:700;color:var(--muted);letter-spacing:.02em;margin-bottom:2px">BOOK ON <span class="rr-logo" style="font-size:.85rem">rival radar<i>.</i></span></div><div class="name" id="spaName"></div><div class="who" id="who"></div></div>
+  <div class="demo">Demo storefront. Every person and price is invented for the hackathon. <span id="build" style="float:right;opacity:.7"></span></div>
+  <div class="demo" id="sync" style="background:#e3f5ec;color:#0f6e46"></div>
+  <div id="toastSlot"></div>
+  <div id="app"></div>
+</div>
+<div class="sheet" id="sheet"><div class="box" id="sheetBox"></div></div>
+
+<script src="demo-data.js?v=13"></script>
+<script src="store.js?v=13"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const gbp = n => "£" + (Number.isInteger(n) ? n : Number(n).toFixed(2));
+let ME = DEMO.competitors.me, tab = "treatments";
+
+async function init() {
+  document.documentElement.style.setProperty("--primary", ME.brand?.primary || "#2f4a43");
+  document.documentElement.style.setProperty("--accent", ME.brand?.accent || "#b88a5a");
+  $("spaName").textContent = ME.name; $("build").textContent = window.PR_BUILD || "";
+  PRStore.subscribe(render);
+  render();
+}
+
+const people = () => [...DEMO.users, ...DEMO.clients.filter(c => !DEMO.users.some(u => u.email === c.email)).map(c => ({ id: c.id, first_name: c.first_name, last_name: "(past client)", email: c.email }))];
+const user = () => people().find(u => u.id === PRStore.get().session) || null;
+let seen = null, seenFor = null, lastSessionAt = 0;
+/* Which kind of customer is this? Used on the sign-in list and under their name. */
+function category(u) {
+  if (DEMO.clients.some(c => c.email === u.email)) return { group: "Past clients", short: "Past client" };
+  const evs = [...DEMO.events, ...PRStore.get().events].filter(e => e.user_id === u.id);
+  if (!evs.length) return { group: "New visitors (no history)", short: "New visitor" };
+  const left = [...new Set(evs.filter(e => e.type !== "booked" && !evs.some(b => b.type === "booked" && b.service_key === e.service_key && Date.parse(b.at) >= Date.parse(e.at))).map(e => e.service_key))];
+  if (left.length) return { group: "Visited, didn't book", short: "Visited, didn't book: " + left.map(k => (ME.services.find(x => x.key === k)?.label || k).replace(/ \(.*\)/, "").toLowerCase()).join(", ") };
+  return { group: "Booked before (not in client list)", short: "Booked before" };
+}
+const usedOffer = (u, s, offerId) => s.purchases.some(p => p.user_id === u.id && p.offer_id === offerId);
+const activeOffers = (u, s) => s.emails.filter(m => m.to_email === u.email && !m.revoked_at && Date.parse(m.ends) > Date.now() && !s.purchases.some(p => p.email_id === m.id) && !usedOffer(u, s, m.offer_id));
+const stillValid = id => { const s = PRStore.get(), m = s.emails.find(x => x.id === id) || s.promos.find(x => x.id === id); return !!m && !m.revoked_at && Date.parse(m.ends) > Date.now(); };
+/* Best offer for this customer and treatment: their personal email voucher first, else the shop's checkout offer. */
+function offerFor(u, k, s) {
+  const mail = activeOffers(u, s).filter(m => m.service_key === k).at(-1);
+  if (mail) return { ...mail, kind: "email" };
+  const promo = s.promos.filter(p => p.service_key === k && !p.revoked_at && Date.parse(p.ends) > Date.now()).at(-1);
+  if (promo && !usedOffer(u, s, promo.id)) return { ...promo, kind: "promo" };
+  return null;
+}
+
+function render() {
+  const ss = PRStore.status(), st0 = PRStore.get();
+  $("sync").style.background = ss.ok ? "#e3f5ec" : "#fbeaea"; $("sync").style.color = ss.ok ? "#0f6e46" : "#a32d2d";
+  $("sync").textContent = ss.ok ? `Synced with the dashboard · ${st0.events.length} clicks · ${st0.emails.length} emails · ${ss.where}` : ss.warn;
+  const u = user();
+  $("who").innerHTML = u ? `<span>Signed in as ${esc(u.first_name)} ${esc(u.last_name)} · <b>${esc(category(u).short)}</b>${u.consent_marketing === false || DEMO.clients.find(c => c.email === u.email)?.consent_marketing === false ? " · no marketing consent" : ""}</span><span style="flex:none;text-align:right"><a id="out">Switch user</a><br><a id="resetMe">Reset me</a></span>` : `<span>Not signed in</span>`;
+  if (u) { $("out").onclick = () => PRStore.setSession(null);
+    $("resetMe").onclick = () => { PRStore.resetUser(u.id, u.email); seen = null; seenFor = null; tab = "treatments"; render(); }; }
+  if (!u) { $("toastSlot").innerHTML = ""; return renderLogin(); }
+  const s = PRStore.get();
+  if (s.sessionAt && s.sessionAt !== lastSessionAt) { lastSessionAt = s.sessionAt; if (s.sessionTab) tab = s.sessionTab; }
+  const inbox = s.emails.filter(m => m.to_email === u.email && !m.cleared_at);
+  if (seenFor !== u.id) { seen = new Set(inbox.map(m => m.id)); seenFor = u.id; }
+  const fresh = inbox.filter(m => !seen.has(m.id) && !m.revoked_at);
+  if (fresh.length && tab !== "inbox") {
+    $("toastSlot").innerHTML = `<div class="toast" id="toast"><span>New offer from ${esc(ME.name)}: ${esc(fresh.at(-1).subject)}</span><span>View</span></div>`;
+    $("toast").onclick = () => { fresh.forEach(m => seen.add(m.id)); tab = "inbox"; render(); };
+  } else { if (tab === "inbox") inbox.forEach(m => seen.add(m.id)); $("toastSlot").innerHTML = ""; }
+  const unread = inbox.filter(m => !m.revoked_at && !s.purchases.some(p => p.email_id === m.id)).length;
+  $("app").innerHTML = `<nav>
+      <button data-t="treatments" class="${tab === "treatments" ? "on" : ""}">Services</button>
+      <button data-t="inbox" class="${tab === "inbox" ? "on" : ""}">Inbox${inbox.length ? ` (${unread})` : ""}</button>
+      <button data-t="cards" class="${tab === "cards" ? "on" : ""}">Wallet</button></nav><div class="pad" id="pane"></div>`;
+  document.querySelectorAll("nav button").forEach(b => b.onclick = () => { tab = b.dataset.t; render(); });
+  if (tab === "treatments") renderTreatments();
+  if (tab === "inbox") renderInbox(u, inbox, s);
+  if (tab === "cards") renderCards(u, s);
+}
+
+function renderLogin() {
+  $("app").innerHTML = `<div class="pad"><h3 style="margin:8px 0 4px">Sign in to book</h3>
+    <div class="muted">Demo login: pick any demo account. George Lee has no history yet, so he's the one to use live.</div>
+    <select id="uSel">${["New visitors (no history)", "Visited, didn't book", "Booked before (not in client list)", "Past clients"].map(g => {
+        const list = people().filter(u => category(u).group === g); if (!list.length) return "";
+        return `<optgroup label="${esc(g)}">${list.map(u => { const c = category(u), noc = u.consent_marketing === false || DEMO.clients.find(x => x.email === u.email)?.consent_marketing === false;
+          return `<option value="${u.id}" ${u.id === "u9" ? "selected" : ""}>${esc(u.first_name)} ${esc(u.last_name.replace("(past client)", "").trim())} · ${esc(c.short)}${noc ? " · no consent" : ""}</option>`; }).join("")}</optgroup>`; }).join("")}</select>
+    <div class="muted" style="margin-top:8px">New visitors get the checkout offer only. Visitors who didn't book and past clients also get the email, if they consented.</div>
+    <button class="btn" id="inBtn">Sign in</button></div>`;
+  $("inBtn").onclick = () => { tab = "treatments"; PRStore.setSession($("uSel").value); };
+}
+
+function renderTreatments() {
+  const u = user(), st = PRStore.get();
+  $("pane").innerHTML = ME.services.map(s => { const o = offerFor(u, s.key, st);
+    return `<div class="svc" data-k="${esc(s.key)}">
+      <div class="row"><span>${esc(s.label)}</span><span>${gbp(s.price_gbp)}</span></div>
+      <div class="muted">${s.duration_min ? s.duration_min + " min · " : ""}${esc(s.blurb || "")}</div>
+      ${o ? `<div class="offer" data-offer="${esc(o.id)}"><b>${o.kind === "email" ? "Your offer" : "Offer"}:</b> pay ${gbp(o.pay)} for a ${gbp(o.value)} gift card · ends ${new Date(o.ends).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}. <u>Buy now</u></div>` : ""}</div>`; }).join("");
+  document.querySelectorAll(".svc").forEach(c => c.onclick = e => {
+    const off = e.target.closest("[data-offer]");
+    if (off) return openService(c.dataset.k);
+    openService(c.dataset.k);
+  });
+}
+
+function openService(k) {
+  const s = ME.services.find(x => x.key === k), u = user();
+  PRStore.addEvent({ user_id: u.id, type: "view", service_key: k });
+  PRStore.addEvent({ user_id: u.id, type: "checkout_started", service_key: k });
+  const dep = Math.round(s.price_gbp * (DEMO.settings.deposit_pct / 100));
+  const offer = offerFor(u, k, PRStore.get());
+  let applied = false, mode = "deposit";
+  const endDay = m => new Date(m.ends).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  const pct = DEMO.settings.deposit_pct / 100;
+  const draw = () => {
+    const off = applied ? offer.value - offer.pay : 0, price = s.price_gbp - off;
+    const depNow = Math.round(price * pct), payNow = mode === "full" ? price : depNow, balance = price - payNow;
+    sheet(`<h3>${esc(s.label)}</h3><div class="muted">${esc(s.blurb || "")}</div>
+      <div class="line" style="margin-top:12px"><span>Price</span><strong>${applied ? `<s style="color:var(--muted);font-weight:400">${gbp(s.price_gbp)}</s> ${gbp(price)}` : gbp(s.price_gbp)}</strong></div>
+      ${applied ? `<div class="line"><span>Voucher applied</span><span style="color:var(--good)">−${gbp(off)}</span></div>` : ""}
+      <div style="display:flex;gap:8px;margin:12px 0 4px">
+        <button class="btn ${mode === "deposit" ? "" : "alt"}" id="mDep" style="margin:0;padding:9px;font-size:14px">Deposit ${gbp(depNow)} today</button>
+        <button class="btn ${mode === "full" ? "" : "alt"}" id="mFull" style="margin:0;padding:9px;font-size:14px">Pay ${gbp(price)} in full</button></div>
+      ${mode === "deposit" ? `<div class="line"><span>Balance on the day</span><span>${gbp(balance)}</span></div>` : ""}
+      ${offer && !applied ? `<div class="offer" style="margin:12px 0 0"><b>${offer.kind === "email" ? "You have a voucher" : "Voucher available"}:</b> ${gbp(offer.value - offer.pay)} off this treatment (new price ${gbp(s.price_gbp - (offer.value - offer.pay))}). Works with a deposit or paying in full. Ends ${endDay(offer)}.
+          <button class="btn acc" id="apply" style="margin-top:8px">Apply voucher</button></div>` : ""}
+      <button class="btn" id="bk">Book and pay ${gbp(payNow)}${mode === "deposit" ? " deposit" : ""}</button>
+      ${applied ? `<button class="btn alt" id="rm">Remove voucher</button>` : `<button class="btn alt" id="nn">Not now</button>`}`);
+    $("mDep").onclick = () => { mode = "deposit"; draw(); };
+    $("mFull").onclick = () => { mode = "full"; draw(); };
+    if ($("apply")) $("apply").onclick = () => { applied = true; draw(); };
+    if ($("rm")) $("rm").onclick = () => { applied = false; draw(); };
+    $("bk").onclick = () => {
+      if (applied && !stillValid(offer.id)) { applied = false; sheet(`<h3>Voucher withdrawn</h3><div class="muted">${esc(offer.spa)} has withdrawn this voucher. You can still book at the normal price.</div><button class="btn" id="ok">OK</button>`); $("ok").onclick = closeSheet; return; }
+      if (applied) {
+        PRStore.addPurchase({ user_id: u.id, email: u.email, offer_id: offer.kind === "email" ? offer.offer_id : offer.id, how: "voucher at checkout", email_id: offer.kind === "email" ? offer.id : null, promo_id: offer.kind === "promo" ? offer.id : null,
+          service_key: k, kind: "booking", pay_mode: mode, paid_gbp: payNow, price_gbp: price, discount_gbp: off, balance_gbp: balance, value_gbp: s.price_gbp, audience: offer.kind === "email" ? offer.audience : "checkout", redeemed: true });
+        PRStore.addEvent({ user_id: u.id, type: "booked", service_key: k, paid_gbp: payNow, voucher: true });
+      } else PRStore.addEvent({ user_id: u.id, type: "booked", service_key: k, paid_gbp: payNow });
+      sheet(`<h3>Booked</h3><div class="muted">Paid ${gbp(payNow)}${applied ? ` with your ${gbp(off)} voucher` : ""}.${balance ? ` ${gbp(balance)} to pay on the day.` : " Nothing more to pay on the day."} See you soon.</div><button class="btn" id="ok">Done</button>`);
+      $("ok").onclick = closeSheet;
+    };
+    if ($("nn")) $("nn").onclick = () => {
+      sheet(`<h3>No problem</h3><div class="muted">Quick question so we can do better: what price did you have in mind for this treatment?</div>
+        <input type="number" id="pim" min="0" step="1" placeholder="Optional, e.g. 170">
+        <button class="btn" id="done">Done</button>`);
+      $("done").onclick = () => {
+        const v = Number($("pim").value);
+        PRStore.addEvent({ user_id: u.id, type: "checkout_abandoned", service_key: k, ...(v > 0 ? { price_in_mind_gbp: v } : {}) });
+        closeSheet();
+      };
+    };
+  };
+  draw();
+}
+
+function renderInbox(u, inbox, s) {
+  if (!inbox.length) { $("pane").innerHTML = `<div style="text-align:right"><button class="btn alt" disabled style="display:inline-block;width:auto;padding:6px 12px;margin:0;font-size:13px">Clear inbox</button></div><div class="empty">No messages yet.<br><br>Offers arrive here after you leave a treatment without booking (press Not now) and the shop then approves an offer for that service.</div>`; return; }
+  $("pane").innerHTML = `<div style="text-align:right;margin-bottom:10px"><button class="btn alt" id="clr" style="display:inline-block;width:auto;padding:6px 12px;margin:0;font-size:13px">Clear inbox</button></div>` + [...inbox].reverse().map(m => {
+    const bought = s.purchases.some(p => p.email_id === m.id), expired = Date.parse(m.ends) < Date.now();
+    if (m.revoked_at && !bought) return `<div class="mail" style="opacity:.6"><div class="bar" style="background:${esc(m.brand?.primary || "#333")}">${esc(m.spa)}</div>
+      <div class="in"><div class="muted">${esc(m.subject)}</div><h4>${esc(m.headline)}</h4><div><span class="badge" style="background:#eee;color:#555">Offer withdrawn by ${esc(m.spa)}</span></div></div></div>`;
+    return `<div class="mail"><div class="bar" style="background:${esc(m.brand?.primary || "#333")}">${esc(m.spa)}</div>
+      <div class="in"><div class="muted">${esc(m.subject)}</div><h4>${esc(m.headline)}</h4><div>${esc(m.body)}</div>
+      ${bought ? `<div style="margin-top:12px"><span class="badge">Gift card bought</span></div>`
+               : `<button class="btn acc" data-id="${esc(m.id)}" ${expired ? "disabled" : ""}>${expired ? "Offer ended" : `${esc(m.cta)} · pay ${gbp(m.pay)}`}</button>`}</div>
+      <div class="foot">${esc(m.footer)}</div></div>`;
+  }).join("");
+  document.querySelectorAll("[data-id]").forEach(b => b.onclick = () => buy(u, inbox.find(m => m.id === b.dataset.id)));
+  $("clr").onclick = () => { PRStore.clearInbox(u.email); };
+}
+
+function buy(u, m) {
+  const svc = ME.services.find(s => s.key === m.service_key);
+  sheet(`<h3>Buy gift card</h3>
+    <div class="line"><span>${esc(svc ? svc.label + " gift card" : m.spa + " gift card")}</span><strong>${gbp(m.value)}</strong></div>
+    <div class="line"><span>You pay today</span><strong>${gbp(m.pay)}</strong></div>
+    <div class="muted" style="margin-top:8px">Demo payment: no card is charged.</div>
+    <button class="btn acc" id="pay">Pay ${gbp(m.pay)}</button><button class="btn alt" id="cx">Cancel</button>`);
+  $("cx").onclick = closeSheet;
+  $("pay").onclick = () => {
+    if (!stillValid(m.id)) { sheet(`<h3>Offer no longer available</h3><div class="muted">${esc(m.spa)} has withdrawn this offer, or it has ended.</div><button class="btn" id="ok">OK</button>`); $("ok").onclick = closeSheet; return; }
+    if (usedOffer(u, PRStore.get(), m.offer_id)) { sheet(`<h3>Already used</h3><div class="muted">You've already used this offer.</div><button class="btn" id="ok">OK</button>`); $("ok").onclick = closeSheet; return; }
+    PRStore.addPurchase({ user_id: u.id, email: u.email, offer_id: m.offer_id, how: "bought from email", email_id: m.id, service_key: m.service_key, paid_gbp: m.pay, value_gbp: m.value, audience: m.audience });
+    PRStore.addEvent({ user_id: u.id, type: "gift_card_purchased", service_key: m.service_key, paid_gbp: m.pay });
+    sheet(`<h3>Gift card bought</h3><div class="muted">${gbp(m.value)} is in your wallet. Book whenever suits you.</div><button class="btn" id="ok">Done</button>`);
+    $("ok").onclick = () => { closeSheet(); tab = "cards"; render(); };
+  };
+}
+
+function renderCards(u, s) {
+  const mine = s.purchases.filter(p => p.user_id === u.id);
+  $("pane").innerHTML = mine.length ? mine.map(p => { const svc = ME.services.find(x => x.key === p.service_key);
+    if (p.kind === "booking") return `<div class="svc"><div class="row"><span>Booking: ${esc(svc ? svc.label : p.service_key)}</span><span>${gbp(p.price_gbp)}</span></div>
+      <div class="muted">${gbp(p.discount_gbp)} voucher applied · paid ${gbp(p.paid_gbp)}${p.balance_gbp ? ` deposit · ${gbp(p.balance_gbp)} due on the day` : " in full"} · ${new Date(p.at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</div></div>`;
+    return `<div class="svc"><div class="row"><span>Gift card: ${esc(svc ? svc.label : ME.name)}</span><span>${gbp(p.value_gbp)}</span></div>
+      <div class="muted">Paid ${gbp(p.paid_gbp)} · ${esc(p.how || (p.redeemed ? "applied at checkout" : "bought from email"))} · ${new Date(p.at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</div></div>`; }).join("")
+    : `<div class="empty">Nothing here yet.</div>`;
+}
+
+function sheet(html) { $("sheetBox").innerHTML = html; $("sheet").classList.add("on"); }
+function closeSheet() { $("sheet").classList.remove("on"); render(); }
+$("sheet").onclick = e => { if (e.target.id === "sheet") closeSheet(); };
+
+init();
+</script>
+</body>
+</html>
