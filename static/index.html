@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rival Radar · ABC Men's Grooming</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0D0D0D;--mut:#757575;--line:#E5E5E5;--soft:#F5F5F5;--purple:#6950F3;--green:#0F8A4A;--amber:#B45309}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Plus Jakarta Sans',sans-serif;color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1280px;margin:0 auto;padding:0 32px}
+header{position:sticky;top:0;background:#fff;z-index:10;border-bottom:1px solid transparent}
+.bar{display:flex;align-items:center;gap:24px;height:96px}
+.logo{font-weight:800;font-size:1.7rem;letter-spacing:-.04em;white-space:nowrap}
+.logo i{color:var(--purple);font-style:normal}
+.search{flex:1;display:flex;align-items:center;border:1px solid var(--line);border-radius:999px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:6px 6px 6px 8px;max-width:900px;margin:0 auto}
+.f{flex:1;padding:6px 16px;border-right:1px solid var(--line);min-width:0}
+.f:last-of-type{border-right:0}
+.f small{display:block;font-size:.68rem;font-weight:700;color:var(--mut);letter-spacing:.02em}
+.f input,.f select{border:0;outline:0;font:500 .95rem 'Plus Jakarta Sans';width:100%;background:transparent;color:var(--ink);padding:2px 0;appearance:none}
+.go{width:52px;height:52px;border-radius:50%;background:var(--ink);border:0;color:#fff;cursor:pointer;display:grid;place-items:center;flex-shrink:0;transition:.15s}
+.go:hover{transform:scale(1.05)}.go:disabled{opacity:.5}
+.acct{border:1px solid var(--line);border-radius:999px;padding:12px 20px;font-weight:700;white-space:nowrap;display:flex;gap:10px;align-items:center}
+.av{width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:.72rem}
+.crumb{color:var(--mut);margin:36px 0 18px;font-size:1rem}.crumb b{color:var(--ink);font-weight:500}
+h1{font-size:3.1rem;font-weight:800;letter-spacing:-.035em;margin:0 0 12px;line-height:1.05}
+.lede{color:var(--mut);font-size:1.15rem;margin:0 0 28px}.lede a{color:var(--purple);text-decoration:none;cursor:pointer}
+.chips{display:flex;gap:10px;margin-bottom:28px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:11px 20px;font:600 .95rem 'Plus Jakarta Sans';cursor:pointer;color:var(--ink)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.kpi{background:var(--soft);border-radius:20px;padding:22px 24px}
+.kpi .l{color:var(--mut);font-size:.88rem;font-weight:500}
+.kpi .v{font-size:2rem;font-weight:800;letter-spacing:-.03em;margin-top:6px}
+.kpi .d{font-size:.85rem;color:var(--mut);margin-top:2px}
+h2{font-size:1.6rem;font-weight:800;letter-spacing:-.025em;margin:8px 0 16px}
+.brief{border:1px solid var(--line);border-radius:20px;padding:24px 28px;margin-bottom:36px;display:flex;gap:18px}
+.brief .ic{width:44px;height:44px;border-radius:50%;background:#F0EDFF;color:var(--purple);display:grid;place-items:center;font-size:1.2rem;flex-shrink:0}
+.brief p{margin:0;line-height:1.7;white-space:pre-wrap;color:#333}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:36px}
+.row{background:var(--soft);border-radius:18px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;transition:.15s}
+.row:hover{background:#EFEFEF}
+.row .n{font-weight:700;font-size:1.08rem}
+.row .s{color:var(--mut);font-size:.92rem;margin-top:4px}
+.row .p{text-align:right;white-space:nowrap}
+.row .p .now{font-weight:700;font-size:1.15rem}
+.row .p del{color:var(--mut);font-size:.92rem;margin-right:6px}
+.tag{display:inline-block;font-size:.76rem;font-weight:700;padding:4px 10px;border-radius:999px;margin-top:8px}
+.t-raise{background:#E6F6EC;color:var(--green)}.t-value{background:#FEF3E2;color:var(--amber)}.t-hold{background:#EEF0F3;color:#475467}
+.gap{font-weight:700}.gap.neg{color:var(--green)}.gap.pos{color:var(--amber)}
+.src{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:48px}
+.src a{border:1px solid var(--line);border-radius:14px;padding:14px 16px;color:var(--ink);text-decoration:none;font-weight:500;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.src a:hover{border-color:var(--ink)}
+.hero2{background:var(--ink);color:#fff;border-radius:24px;padding:34px 36px;display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.hero2 .big{font-size:3.6rem;font-weight:800;letter-spacing:-.04em}
+.hero2 .mut{color:#B3B3B3}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-bottom:48px}
+.cardx{border-radius:22px;overflow:hidden;border:1px solid var(--line)}
+.cover{height:130px;display:flex;align-items:flex-end;padding:16px 20px;font-size:2.2rem}
+.cover .badge{margin-left:auto;background:#fff;border-radius:999px;padding:7px 14px;font-size:.82rem;font-weight:700}
+.body{padding:18px 20px 20px}
+.body .t{display:flex;justify-content:space-between;align-items:baseline}
+.body .t b{font-size:1.25rem;font-weight:800}
+.offer{background:var(--soft);border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between;margin-top:12px;font-weight:600}
+.email{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:.86rem;color:#333;white-space:pre-wrap;line-height:1.55;margin-top:12px;max-height:220px;overflow:auto}
+.send{width:100%;margin-top:14px;background:var(--ink);color:#fff;border:0;border-radius:999px;padding:14px;font:700 .95rem 'Plus Jakarta Sans';cursor:pointer}
+.send:disabled{background:#E6F6EC;color:var(--green)}
+.empty{background:var(--soft);border-radius:24px;padding:70px;text-align:center;margin-bottom:48px}
+.empty .e{font-size:2.6rem}.empty h3{font-size:1.5rem;font-weight:800;margin:10px 0 6px}.empty p{color:var(--mut);margin:0}
+.load{display:none;align-items:center;gap:12px;color:var(--mut);margin-bottom:24px;font-weight:500}
+.ring{width:20px;height:20px;border:2.5px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.steps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.step{background:var(--soft);border-radius:999px;padding:8px 14px;font-size:.84rem;font-weight:600;animation:in .35s ease both}
+.step b{color:var(--purple);margin-right:6px}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.warn{background:#FEF3E2;color:var(--amber);border-radius:14px;padding:12px 16px;font-size:.88rem;margin-bottom:20px;font-weight:500}
+</style>
+</head>
+<body>
+<header><div class="wrap bar">
+  <div class="logo">rival radar<i>.</i></div>
+  <div class="search">
+    <div class="f" style="flex:1.6"><small>Ask the agent</small><input id="goal" value="How do my prices compare with barbers near me?"></div>
+    <div class="f"><small>Location</small><input id="area" value="Shoreditch, London"></div>
+    <div class="f" style="flex:.8"><small>Search area</small><select id="radius">
+      <option value="1">Within 1 mile</option><option value="2" selected>Within 2 miles</option><option value="5">Within 5 miles</option>
+      <option value="10">Whole town · 10 mi</option><option value="25">Whole region · 25 mi</option></select></div>
+    <div class="f" style="flex:.7"><small>Margin floor</small><select id="floor">
+      <option>25</option><option>30</option><option selected>35</option><option>40</option><option>50</option></select></div>
+    <button class="go" id="run" title="Run agent"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+  </div>
+  <div class="acct"><span class="av">ABC</span>ABC Men's Grooming</div>
+</div></header>
+
+<main class="wrap">
+  <div class="crumb">Home · Marketing · <b>Pricing intelligence</b></div>
+  <h1 id="h1">Competitor pricing near Shoreditch</h1>
+  <p class="lede" id="lede">See how ABC compares with barbers nearby, then lock in revenue with prepaid vouchers.</p>
+  <div class="chips"><button class="chip on" data-t="pricing">Competitor-aware pricing</button><button class="chip" data-t="campaign">Voucher campaign</button></div>
+  <div class="load" id="load"><div class="ring"></div><span id="loadTxt"></span></div>
+  <section id="pricing"><div id="pOut"><div class="empty"><div class="e">📍</div><h3>Scan your local market</h3><p>Set your location and search area above, then hit search to run the agent.</p></div></div></section>
+  <section id="campaign" style="display:none"><div id="cOut"><div class="empty"><div class="e">🎁</div><h3>No campaign yet</h3><p>Run the pricing agent first to build targeted voucher offers.</p></div></div></section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const town=()=>$("area").value.split(",")[0].trim();
+const head=()=>{$("h1").textContent=`Competitor pricing near ${town()}`};
+$("area").oninput=head;
+document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{document.querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));b.classList.add("on");
+  $("pricing").style.display=b.dataset.t==="pricing"?"":"none";$("campaign").style.display=b.dataset.t==="campaign"?"":"none"});
+$("run").onclick=async()=>{
+  const radius=+$("radius").value;
+  $("run").disabled=true;$("load").style.display="flex";$("loadTxt").textContent=`Agent is scanning barbers within ${radius} miles of ${$("area").value}…`;
+  try{const r=await fetch("/api/run",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({goal:$("goal").value,area:$("area").value,radius,floor:+$("floor").value})});render(await r.json())}
+  catch(e){$("pOut").innerHTML=`<div class="warn">Error: ${esc(e)}</div>`}
+  $("run").disabled=false;$("load").style.display="none";
+};
+function render(d){
+  const recs=d.pricing.recommendations,rc=d.research,raises=recs.filter(r=>r.action.includes("RAISE")).length;
+  const gap=(recs.reduce((a,r)=>a+r["gap %"],0)/recs.length).toFixed(1);
+  $("lede").innerHTML=`Compared with ${rc.competitors_sampled} barbers within ${rc.radius_miles} miles of ${esc(rc.area)}${(rc.sources||[]).some(s=>s.url)?` · <a onclick="document.getElementById('srcs').scrollIntoView({behavior:'smooth'})">See sources</a>`:""}`;
+  const rows=recs.map(r=>{
+    const cls=r.action.includes("RAISE")?"raise":r.action.includes("value")?"value":"hold";
+    const lab={raise:"Raise price",value:"Hold · add value",hold:"Hold"}[cls];
+    const g=r["gap %"],changed=r["recommended £"]!==r["ABC price £"];
+    return `<div class="row"><div><div class="n">${esc(r.service)}</div>
+      <div class="s">Local median £${r["local median £"]} · range £${esc(r["local range £"])} · <span class="gap ${g<0?"neg":g>0?"pos":""}">${g>0?"+":""}${g}%</span></div>
+      <span class="tag t-${cls}">${lab}</span></div>
+      <div class="p">${changed?`<del>£${r["ABC price £"]}</del>`:""}<span class="now">£${r["recommended £"]}</span><div class="s">floor £${r["margin floor £"]}</div></div></div>`}).join("");
+  const srcs=(rc.sources||[]).filter(s=>s.url).map(s=>`<a href="${esc(s.url)}" target="_blank">↗ ${esc(s.title)}</a>`).join("");
+  $("pOut").innerHTML=`${d.fallback?`<div class="warn">LLM unavailable, so the deterministic pipeline was used.</div>`:""}
+    <div class="steps">${d.steps.map((s,i)=>`<div class="step" style="animation-delay:${i*.07}s"><b>${i+1}</b>${esc(s.replaceAll("_"," "))}</div>`).join("")}</div>
+    <div class="kpis">
+      <div class="kpi"><div class="l">Barbers compared</div><div class="v">${rc.competitors_sampled}</div><div class="d">within ${rc.radius_miles} mi</div></div>
+      <div class="kpi"><div class="l">Average price gap</div><div class="v">${gap>0?"+":""}${gap}%</div><div class="d">vs local median</div></div>
+      <div class="kpi"><div class="l">Underpriced services</div><div class="v">${raises}</div><div class="d">recommend raising</div></div>
+      <div class="kpi"><div class="l">Uplift per full menu</div><div class="v">£${d.pricing["price_uplift_per_full_menu_£"]}</div><div class="d">above ${d.pricing.margin_floor_pct}% margin floor</div></div></div>
+    <div class="brief"><div class="ic">✦</div><div><h2 style="font-size:1.2rem;margin:0 0 8px">Agent brief</h2><p>${esc(d.brief).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>")}</p></div></div>
+    <h2>ABC vs the local market</h2><div class="grid2">${rows}</div>
+    ${srcs?`<h2 id="srcs">Sources</h2><div class="src">${srcs}</div>`:""}`;
+  const so=d.campaign,segs=Object.entries(so.segments);
+  const total=segs.reduce((a,[,v])=>a+v["projected_£_upfront"],0),reach=segs.reduce((a,[,v])=>a+v.count,0);
+  const look={lapsed:["linear-gradient(135deg,#FDE2E4,#FAD0C4)","↺","Win back"],vip:["linear-gradient(135deg,#E4DEFF,#C9BEFF)","★","VIP"],regular:["linear-gradient(135deg,#D9F2E6,#BDE8D1)","✂︎","Regulars"]};
+  $("cOut").innerHTML=`<div class="hero2"><div><div class="mut" style="font-weight:600">Projected revenue locked in upfront</div><div class="big">£${total.toLocaleString()}</div>
+    <div class="mut">8% redemption · paid before Christmas</div></div><div style="text-align:right"><div class="mut" style="font-weight:600">Reachable clients</div>
+    <div style="font-size:2.2rem;font-weight:800">${reach}</div><div class="mut">${so.opted_out_excluded} excluded · no marketing consent</div></div></div>
+    <div class="cards">${segs.map(([k,v])=>{const [bg,ic,nm]=look[k]||["#F5F5F5","•",k];return `<div class="cardx">
+      <div class="cover" style="background:${bg}">${ic}<span class="badge">Expires ${v.expires}</span></div>
+      <div class="body"><div class="t"><b>${nm}</b><span class="s" style="color:var(--mut)">${v.count} clients</span></div>
+      <div class="offer"><span>Pay £${v.pay}</span><span>Get £${v.get}</span></div>
+      <div class="s" style="color:var(--mut);margin-top:10px;font-size:.88rem">${esc(v.pitch)} · ≈ £${v["projected_£_upfront"].toLocaleString()} upfront</div>
+      ${d.drafts[k]?`<div class="email">${esc(d.drafts[k])}</div>`:""}
+      <button class="send" onclick="this.textContent='✓ Queued ${v.count} emails (demo)';this.disabled=true">Approve & send to ${v.count}</button></div></div>`}).join("")}</div>`;
+}
+</script>
+</body>
+</html>
